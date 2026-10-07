@@ -76,6 +76,10 @@
   }
   .theme-toggle:hover{border-color:var(--accent);color:var(--accent);}
   .theme-toggle svg{width:16px;height:16px;}
+  #lang-toggle{
+    width:auto;border-radius:16px;padding:0 12px;
+    font-size:12px;font-weight:500;font-family:var(--font-mono);letter-spacing:0.02em;
+  }
   .tab{
     background:none;border:none;cursor:pointer;
     font-size:14.5px;color:var(--muted);
@@ -103,6 +107,23 @@
   }
   @media(max-width:860px){
     .work{grid-template-columns:1fr;gap:36px;}
+  }
+  @media(max-width:600px){
+    .app{padding:0 16px 60px;}
+    header.topbar{padding:18px 0 16px;gap:10px;}
+    .logo{font-size:17px;}
+    nav.tabs{gap:0;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tab{padding:8px 10px;font-size:13px;flex-shrink:0;}
+    .header-right{gap:8px;}
+    h1.intro{font-size:14px;margin-bottom:24px;}
+    .field-row{grid-template-columns:1fr;gap:10px;}
+    .color-row{gap:14px;}
+    .select-row{flex-wrap:wrap;}
+    .pct-row{flex-wrap:wrap;}
+    .pct-chip{min-width:52px;}
+    main{padding-top:24px;}
+    .preview-wrap{padding:14px;min-height:260px;}
+    footer{flex-direction:column;align-items:flex-start;gap:10px;}
   }
 
   h1.intro{
@@ -294,16 +315,17 @@
         <path d="M2 15.5L22 9.5M2 15.5L9 12.2M2 15.5L4.3 19M22 9.5L15 12.8M22 9.5L19.7 6M9 12.2L11 3L13 3.6L12.4 12.9M9 12.2L12.4 12.9M15 12.8L12.4 12.9M15 12.8L14.8 21.2L12.7 20.6L12.4 12.9"
           stroke="#1f3a5f" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
       </svg>
-      APRON<span class="sub">Foto-Werkzeuge für Luftfahrtfotografie</span>
+      APRON<span class="sub" data-i18n="header.sub">Photo tools for aviation photography</span>
     </div>
     <div class="header-right">
       <nav class="tabs">
-        <button class="tab active" data-tab="summary">Foto-Übersicht</button>
-        <button class="tab" data-tab="split">Foto-Splitter</button>
-        <button class="tab" data-tab="resize">Foto-Resizer</button>
-        <button class="tab" data-tab="batch">Foto-Stapel</button>
+        <button class="tab active" data-tab="summary" data-i18n="tab.summary">Photo Summary</button>
+        <button class="tab" data-tab="split" data-i18n="tab.split">Photo Splitter</button>
+        <button class="tab" data-tab="resize" data-i18n="tab.resize">Photo Resizer</button>
+        <button class="tab" data-tab="batch" data-i18n="tab.batch">Photo Batch</button>
       </nav>
-      <button class="theme-toggle" id="theme-toggle" aria-label="Farbschema wechseln" title="Darkmode umschalten"></button>
+      <button class="theme-toggle" id="lang-toggle" aria-label="Switch language" title="Switch language">DE</button>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Switch colour scheme" title="Toggle dark mode" data-i18n-aria="theme.toggleAria" data-i18n-title="theme.toggleTitle"></button>
     </div>
   </header>
 
@@ -311,7 +333,7 @@
 
     <!-- ================= SUMMARY PANEL ================= -->
     <section class="panel active" id="panel-summary">
-      <h1 class="intro">Lade ein Foto hoch, um die <strong>Aufnahmedaten</strong> automatisch auszulesen. Ergänze Register, Typ oder Flughafen von Hand und exportiere eine saubere Übersicht.</h1>
+      <h1 class="intro" data-i18n-html="summary.intro">Upload a photo to automatically read out the <strong>shot data</strong>. Add registration, type or airport by hand and export a clean summary.</h1>
 
       <div class="work">
         <div class="controls">
@@ -319,7 +341,7 @@
             <div class="icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <p>Foto hierher ziehen oder klicken zum Auswählen</p>
+            <p data-i18n="common.dropzoneText">Drag a photo here or click to choose one</p>
             <div class="fname" id="fname-summary"></div>
           </div>
           <input type="file" id="file-summary" accept="image/*">
@@ -327,85 +349,96 @@
 
           <div class="checkbox-row" style="margin-top:14px;">
             <input type="checkbox" id="dual-source-toggle">
-            <label for="dual-source-toggle">Original separat für EXIF-Daten hochladen (falls das bearbeitete Bild keine/korrupte EXIF-Daten mehr hat)</label>
+            <label for="dual-source-toggle" data-i18n="summary.dualToggleLabel">Upload original separately for EXIF data (if the edited photo has no/corrupted EXIF data left)</label>
           </div>
 
           <div id="dz-summary-exif-wrap" style="display:none;margin-top:14px;">
-            <div class="field-label">Original-Foto (nur zum Auslesen der EXIF-Daten)</div>
+            <div class="field-label" data-i18n="summary.originalLabel">Original photo (only used to read EXIF data)</div>
             <div class="dropzone" id="dz-summary-exif">
               <div class="icon">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </div>
-              <p>Original hierher ziehen oder klicken</p>
+              <p data-i18n="summary.originalDropzoneText">Drag the original here or click to choose it</p>
               <div class="fname" id="fname-summary-exif"></div>
             </div>
             <input type="file" id="file-summary-exif" accept="image/*">
           </div>
 
           <div class="field-group" id="exif-fields" style="display:none;">
-            <div class="field-label">Ausgelesene Aufnahmedaten — bearbeitbar</div>
+            <div class="field-label" data-i18n="summary.exifFieldsLabel">Detected shot data — editable</div>
             <div class="field-row">
-              <div class="field"><label>Kamera</label><input type="text" id="f-camera" placeholder="—"></div>
-              <div class="field"><label>Objektiv</label><input type="text" id="f-lens" placeholder="—"></div>
+              <div class="field"><label data-i18n="summary.camera">Camera</label><input type="text" id="f-camera" placeholder="—"></div>
+              <div class="field"><label data-i18n="summary.lens">Lens</label><input type="text" id="f-lens" placeholder="—"></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Brennweite</label><input type="text" id="f-focal" placeholder="z. B. 400mm"></div>
-              <div class="field"><label>Blende</label><input type="text" id="f-aperture" placeholder="z. B. f/5.6"></div>
+              <div class="field"><label data-i18n="summary.focal">Focal length</label><input type="text" id="f-focal" data-i18n-placeholder="summary.focalPh" placeholder="e.g. 400mm"></div>
+              <div class="field"><label data-i18n="summary.aperture">Aperture</label><input type="text" id="f-aperture" data-i18n-placeholder="summary.aperturePh" placeholder="e.g. f/5.6"></div>
             </div>
             <div class="field-row">
-              <div class="field"><label>Belichtung</label><input type="text" id="f-shutter" placeholder="z. B. 1/1000s"></div>
-              <div class="field"><label>ISO</label><input type="text" id="f-iso" placeholder="z. B. ISO 400"></div>
+              <div class="field"><label data-i18n="summary.shutter">Shutter speed</label><input type="text" id="f-shutter" data-i18n-placeholder="summary.shutterPh" placeholder="e.g. 1/1000s"></div>
+              <div class="field"><label>ISO</label><input type="text" id="f-iso" data-i18n-placeholder="summary.isoPh" placeholder="e.g. ISO 400"></div>
             </div>
             <div class="field-row">
-              <div class="field full"><label>Datum</label><input type="text" id="f-date" placeholder="z. B. 12.06.2026"></div>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Ergänzende Angaben (optional)</div>
-            <div class="field-row">
-              <div class="field"><label>Luftfahrzeugkennzeichen</label><input type="text" id="f-reg" placeholder="z. B. D-AIBL"></div>
-              <div class="field"><label>Muster</label><input type="text" id="f-type" placeholder="z. B. A320-214"></div>
-            </div>
-            <div class="field-row">
-              <div class="field full"><label>Ort</label><input type="text" id="f-place" placeholder="z. B. EDDM / München"></div>
+              <div class="field full"><label data-i18n="summary.date">Date</label><input type="text" id="f-date" data-i18n-placeholder="summary.datePh" placeholder="e.g. 12.06.2026"></div>
             </div>
           </div>
 
           <div class="field-group">
-            <div class="field-label">Wasserzeichen (optional)</div>
+            <div class="field-label" data-i18n="summary.extraLabel">Additional details (optional)</div>
+            <div class="field-row">
+              <div class="field"><label data-i18n="summary.reg">Registration</label><input type="text" id="f-reg" data-i18n-placeholder="summary.regPh" placeholder="e.g. D-AIBL"></div>
+              <div class="field"><label data-i18n="summary.type">Type</label><input type="text" id="f-type" data-i18n-placeholder="summary.typePh" placeholder="e.g. A320-214"></div>
+            </div>
+            <div class="field-row">
+              <div class="field full"><label data-i18n="summary.place">Airport</label><input type="text" id="f-place" data-i18n-placeholder="summary.placePh" placeholder="e.g. EDDM / Munich"></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label" data-i18n="summary.watermarkLabel">Watermark (optional)</div>
             <div class="field-row">
               <div class="field">
                 <label>Copyright</label>
                 <div class="prefixed-input">
                   <span class="prefix">©</span>
-                  <input type="text" id="f-copyright" placeholder="2026 Dein Name">
+                  <input type="text" id="f-copyright" data-i18n-placeholder="summary.copyrightPh" placeholder="2026 Your Name">
                 </div>
               </div>
-              <div class="field"><label>Eigener Text</label><input type="text" id="f-custom" placeholder="z. B. Spotting Day"></div>
+              <div class="field"><label data-i18n="summary.customText">Custom text</label><input type="text" id="f-custom" data-i18n-placeholder="summary.customTextPh" placeholder="e.g. Spotting Day"></div>
             </div>
           </div>
 
           <div class="field-group">
             <div class="field-label">Layout</div>
             <div class="select-row">
-              <div class="choice mode-choice active" data-mode="bar">Balken unten</div>
-              <div class="choice mode-choice" data-mode="overlay">Text im Bild</div>
+              <div class="choice mode-choice active" data-mode="bar" data-i18n="summary.modeBar">Bar below</div>
+              <div class="choice mode-choice" data-mode="overlay" data-i18n="summary.modeOverlay">Text on photo</div>
             </div>
-            <div class="color-row" style="margin-top:18px;">
-              <div class="color-pick"><input type="color" id="c-bg" value="#ffffff"><label>Hintergrund</label></div>
-              <div class="color-pick"><input type="color" id="c-accent" value="#1f3a5f"><label>Akzent</label></div>
+
+            <div id="bar-only-options">
+              <div class="field-label" style="margin-top:18px;" data-i18n="summary.bgTypeLabel">Background type</div>
+              <div class="select-row">
+                <div class="choice bgtype-choice active" data-bgtype="flat" data-i18n="summary.bgTypeFlat">Solid colour</div>
+                <div class="choice bgtype-choice" data-bgtype="blur" data-i18n="summary.bgTypeBlur">Blurred photo</div>
+              </div>
+            </div>
+
+            <div class="color-row" style="margin-top:18px;flex-wrap:wrap;row-gap:14px;">
+              <div class="color-pick"><input type="color" id="c-bg" value="#ffffff"><label data-i18n="summary.bgColor">Background</label></div>
+              <div class="color-pick" id="pick-line1"><input type="color" id="c-line1" value="#000000"><label data-i18n="summary.line1Color">Camera data</label></div>
+              <div class="color-pick" id="pick-line23"><input type="color" id="c-line23" value="#6b7280"><label data-i18n="summary.line23Color">Small text</label></div>
+              <div class="color-pick"><input type="color" id="c-accent" value="#1f3a5f"><label data-i18n="summary.accentColor">Flight data</label></div>
             </div>
           </div>
 
-          <button class="btn-primary" id="btn-render-summary" disabled>Übersicht erzeugen</button>
+          <button class="btn-primary" id="btn-render-summary" disabled data-i18n="summary.renderBtn">Generate summary</button>
         </div>
 
         <div class="result">
-          <div class="preview-wrap empty" id="preview-summary">Noch kein Foto geladen</div>
+          <div class="preview-wrap empty" id="preview-summary" data-i18n="common.emptyPreview">No photo loaded yet</div>
           <div class="preview-actions" id="summary-actions" style="display:none;">
             <span class="preview-meta" id="summary-dims"></span>
-            <button class="btn-secondary" id="btn-download-summary">Als PNG herunterladen</button>
+            <button class="btn-secondary" id="btn-download-summary" data-i18n="summary.downloadBtn">Download as PNG</button>
           </div>
         </div>
       </div>
@@ -413,7 +446,7 @@
 
     <!-- ================= SPLIT PANEL ================= -->
     <section class="panel" id="panel-split">
-      <h1 class="intro">Teile ein Foto in gleich große <strong>Ausschnitte</strong> — etwa für eine mehrteilige Carousel-Veröffentlichung.</h1>
+      <h1 class="intro" data-i18n-html="split.intro">Split a photo into equal <strong>pieces</strong> — e.g. for a multi-part carousel post.</h1>
 
       <div class="work">
         <div class="controls">
@@ -421,21 +454,21 @@
             <div class="icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <p>Foto hierher ziehen oder klicken zum Auswählen</p>
+            <p data-i18n="common.dropzoneText">Drag a photo here or click to choose one</p>
             <div class="fname" id="fname-split"></div>
           </div>
           <input type="file" id="file-split" accept="image/*">
 
           <div class="field-group">
-            <div class="field-label">Richtung</div>
+            <div class="field-label" data-i18n="split.directionLabel">Direction</div>
             <div class="select-row">
-              <div class="choice orient-choice active" data-orient="vertical">Vertikale Streifen</div>
-              <div class="choice orient-choice" data-orient="horizontal">Horizontale Streifen</div>
+              <div class="choice orient-choice active" data-orient="vertical" data-i18n="split.vertical">Vertical strips</div>
+              <div class="choice orient-choice" data-orient="horizontal" data-i18n="split.horizontal">Horizontal strips</div>
             </div>
           </div>
 
           <div class="field-group">
-            <div class="field-label">Anzahl der Teile</div>
+            <div class="field-label" data-i18n="split.countLabel">Number of pieces</div>
             <div class="count-stepper">
               <button id="count-minus">−</button>
               <span id="count-value">2</span>
@@ -443,14 +476,14 @@
             </div>
           </div>
 
-          <button class="btn-primary" id="btn-render-split" disabled>Foto aufteilen</button>
+          <button class="btn-primary" id="btn-render-split" disabled data-i18n="split.renderBtn">Split photo</button>
         </div>
 
         <div class="result">
-          <div class="preview-wrap empty" id="preview-split">Noch kein Foto geladen</div>
+          <div class="preview-wrap empty" id="preview-split" data-i18n="common.emptyPreview">No photo loaded yet</div>
           <div class="preview-actions" id="split-actions" style="display:none;">
             <span class="preview-meta" id="split-dims"></span>
-            <button class="btn-secondary" id="btn-download-zip">Alle als ZIP herunterladen</button>
+            <button class="btn-secondary" id="btn-download-zip" data-i18n="split.zipBtn">Download all as ZIP</button>
           </div>
         </div>
       </div>
@@ -458,7 +491,7 @@
 
     <!-- ================= RESIZE PANEL ================= -->
     <section class="panel" id="panel-resize">
-      <h1 class="intro">Lade ein Foto hoch und passe die <strong>Bildgröße</strong> an — per Pixelmaß oder Prozent-Voreinstellung.</h1>
+      <h1 class="intro" data-i18n-html="resize.intro">Upload a photo and adjust its <strong>size</strong> — by exact pixels or a percentage preset.</h1>
 
       <div class="work">
         <div class="controls">
@@ -466,52 +499,53 @@
             <div class="icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <p>Foto hierher ziehen oder klicken zum Auswählen</p>
+            <p data-i18n="common.dropzoneText">Drag a photo here or click to choose one</p>
             <div class="fname" id="fname-resize"></div>
           </div>
           <input type="file" id="file-resize" accept="image/*">
 
           <div class="field-group" id="resize-fields" style="display:none;">
-            <div class="field-label">Original</div>
+            <div class="field-label" data-i18n="resize.originalLabel">Original</div>
             <div class="readout" id="resize-original">—</div>
 
-            <div class="field-label" style="margin-top:18px;">Neue Größe (px)</div>
+            <div class="field-label" style="margin-top:18px;" data-i18n="resize.newSizeLabel">New size (px)</div>
             <div class="field-row">
-              <div class="field"><label>Breite</label><input type="number" id="r-width" min="1"></div>
-              <div class="field"><label>Höhe</label><input type="number" id="r-height" min="1"></div>
+              <div class="field"><label data-i18n="resize.width">Width</label><input type="number" id="r-width" min="1"></div>
+              <div class="field"><label data-i18n="resize.height">Height</label><input type="number" id="r-height" min="1"></div>
             </div>
             <div class="checkbox-row">
               <input type="checkbox" id="r-lock" checked>
-              <label for="r-lock">Seitenverhältnis beibehalten</label>
+              <label for="r-lock" data-i18n="resize.lockLabel">Keep aspect ratio</label>
             </div>
             <div class="pct-row">
               <div class="pct-chip" data-pct="25">25%</div>
               <div class="pct-chip" data-pct="50">50%</div>
               <div class="pct-chip" data-pct="75">75%</div>
               <div class="pct-chip" data-pct="100">100%</div>
+              <div class="pct-chip" id="pct-jp" title="1280px width, height auto">JP</div>
             </div>
           </div>
 
           <div class="field-group" id="resize-format-group" style="display:none;">
-            <div class="field-label">Format</div>
+            <div class="field-label" data-i18n="resize.formatLabel">Format</div>
             <div class="select-row">
               <div class="choice format-choice active" data-format="jpeg">JPEG</div>
               <div class="choice format-choice" data-format="png">PNG</div>
             </div>
             <div class="slider-row" id="resize-quality-row">
-              <div class="slider-label"><span>Qualität</span><span id="r-quality-value">90</span></div>
-              <input type="range" id="r-quality" min="10" max="100" value="90">
+              <div class="slider-label"><span data-i18n="resize.qualityLabel">Quality</span><span id="r-quality-value">100</span></div>
+              <input type="range" id="r-quality" min="10" max="100" value="100">
             </div>
           </div>
 
-          <button class="btn-primary" id="btn-render-resize" disabled>Bild anpassen</button>
+          <button class="btn-primary" id="btn-render-resize" disabled data-i18n="resize.renderBtn">Resize photo</button>
         </div>
 
         <div class="result">
-          <div class="preview-wrap empty" id="preview-resize">Noch kein Foto geladen</div>
+          <div class="preview-wrap empty" id="preview-resize" data-i18n="common.emptyPreview">No photo loaded yet</div>
           <div class="preview-actions" id="resize-actions" style="display:none;">
             <span class="preview-meta" id="resize-dims"></span>
-            <button class="btn-secondary" id="btn-download-resize">Herunterladen</button>
+            <button class="btn-secondary" id="btn-download-resize" data-i18n="resize.downloadBtn">Download</button>
           </div>
         </div>
       </div>
@@ -519,7 +553,7 @@
 
     <!-- ================= BATCH PANEL ================= -->
     <section class="panel" id="panel-batch">
-      <h1 class="intro">Lade alle Fotos eines Spotting-Tags auf einmal hoch. Hochformat-Fotos bekommen automatisch nur eine Übersicht, Querformat-Fotos zusätzlich einen Split — alles automatisch aus EXIF- und Stichwort-Daten befüllt, sortiert nach Kennzeichen in einem ZIP.</h1>
+      <h1 class="intro" data-i18n="batch.intro">Upload all photos from a spotting day at once — a summary is generated for each one, auto-filled from EXIF and keyword data, sorted by registration into a ZIP.</h1>
 
       <div class="work">
         <div class="controls">
@@ -527,41 +561,55 @@
             <div class="icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <p>Fotos hierher ziehen oder klicken (Mehrfachauswahl möglich)</p>
+            <p data-i18n="batch.dropzoneText">Drag photos here or click to choose them (multiple selection allowed)</p>
             <div class="fname" id="fname-batch"></div>
           </div>
           <input type="file" id="file-batch" accept="image/*" multiple>
-
-          <div class="field-group">
-            <div class="field-label">Splits pro Querformat-Foto</div>
-            <div class="count-stepper">
-              <button id="batch-count-minus">−</button>
-              <span id="batch-count-value">2</span>
-              <button id="batch-count-plus">+</button>
-            </div>
-          </div>
 
           <div class="field-group">
             <div class="field-label">Copyright (optional)</div>
             <div class="field">
               <div class="prefixed-input">
                 <span class="prefix">©</span>
-                <input type="text" id="batch-copyright" placeholder="2026 Dein Name">
+                <input type="text" id="batch-copyright" data-i18n-placeholder="summary.copyrightPh" placeholder="2026 Your Name">
               </div>
             </div>
           </div>
 
           <div class="field-group">
-            <div class="field-label">Darstellung</div>
-            <div class="readout">Hintergrund, Akzentfarbe und Layout werden automatisch von der Foto-Übersicht übernommen. Register, Muster, Flughafen und Zusatztext werden pro Foto aus EXIF- und Stichwort-Daten erkannt.</div>
+            <div class="field-label">Layout</div>
+            <div class="select-row">
+              <div class="choice batch-mode-choice active" data-mode="bar" data-i18n="summary.modeBar">Bar below</div>
+              <div class="choice batch-mode-choice" data-mode="overlay" data-i18n="summary.modeOverlay">Text on photo</div>
+            </div>
+
+            <div id="batch-bar-only-options">
+              <div class="field-label" style="margin-top:18px;" data-i18n="summary.bgTypeLabel">Background type</div>
+              <div class="select-row">
+                <div class="choice batch-bgtype-choice active" data-bgtype="flat" data-i18n="summary.bgTypeFlat">Solid colour</div>
+                <div class="choice batch-bgtype-choice" data-bgtype="blur" data-i18n="summary.bgTypeBlur">Blurred photo</div>
+              </div>
+            </div>
+
+            <div class="color-row" style="margin-top:18px;flex-wrap:wrap;row-gap:14px;">
+              <div class="color-pick"><input type="color" id="batch-c-bg" value="#ffffff"><label data-i18n="summary.bgColor">Background</label></div>
+              <div class="color-pick" id="batch-pick-line1"><input type="color" id="batch-c-line1" value="#000000"><label data-i18n="summary.line1Color">Camera data</label></div>
+              <div class="color-pick" id="batch-pick-line23"><input type="color" id="batch-c-line23" value="#6b7280"><label data-i18n="summary.line23Color">Small text</label></div>
+              <div class="color-pick"><input type="color" id="batch-c-accent" value="#1f3a5f"><label data-i18n="summary.accentColor">Flight data</label></div>
+            </div>
           </div>
 
-          <button class="btn-primary" id="btn-render-batch" disabled>Stapel verarbeiten</button>
+          <div class="field-group">
+            <div class="field-label" data-i18n="batch.displayLabel">Detection</div>
+            <div class="readout" data-i18n="batch.displayText">Registration, type, airport and custom text are detected per photo from EXIF and keyword data — same as the Photo Summary tab.</div>
+          </div>
+
+          <button class="btn-primary" id="btn-render-batch" disabled data-i18n="batch.renderBtn">Process batch</button>
         </div>
 
         <div class="result">
           <div class="preview-wrap" id="preview-batch">
-            <div id="batch-idle" style="color:#b0b5bc;font-size:13.5px;">Noch keine Fotos geladen</div>
+            <div id="batch-idle" style="color:#b0b5bc;font-size:13.5px;" data-i18n="batch.idleEmpty">No photos loaded yet</div>
             <div id="batch-progress-wrap" style="display:none;width:100%;max-width:420px;">
               <div class="progress-bar-outer"><div class="progress-bar-inner" id="batch-progress-bar"></div></div>
               <div class="batch-stage" id="batch-progress-label" style="margin-top:10px;"></div>
@@ -569,7 +617,7 @@
           </div>
           <div class="preview-actions" id="batch-actions" style="display:none;">
             <span class="preview-meta" id="batch-summary-text"></span>
-            <button class="btn-secondary" id="btn-download-batch">ZIP herunterladen</button>
+            <button class="btn-secondary" id="btn-download-batch" data-i18n="batch.zipBtn">Download ZIP</button>
           </div>
         </div>
       </div>
@@ -578,13 +626,209 @@
   </main>
 
   <footer>
-    <span>APRON läuft vollständig im Browser — Fotos verlassen nie dein Gerät.</span>
-    <span>v1.1</span>
+    <span data-i18n="footer.text">APRON runs entirely in your browser — your photos never leave your device.</span>
+    <span>
+      <a href="impressum.html" data-i18n="footer.imprint" style="color:inherit;text-decoration:underline;">Imprint</a>
+      &nbsp;·&nbsp;
+      <a href="datenschutz.html" data-i18n="footer.privacy" style="color:inherit;text-decoration:underline;">Privacy</a>
+      &nbsp;·&nbsp;v1.2
+    </span>
   </footer>
 
 </div>
 
 <script>
+
+/* ---------------- language / i18n ---------------- */
+const I18N = {
+  en: {
+    'header.sub': 'Photo tools for aviation photography',
+    'tab.summary': 'Photo Summary',
+    'tab.split': 'Photo Splitter',
+    'tab.resize': 'Photo Resizer',
+    'tab.batch': 'Photo Batch',
+    'theme.toggleAria': 'Switch colour scheme',
+    'theme.toggleTitle': 'Toggle dark mode',
+    'common.dropzoneText': 'Drag a photo here or click to choose one',
+    'common.emptyPreview': 'No photo loaded yet',
+    'summary.intro': 'Upload a photo to automatically read out the <strong>shot data</strong>. Add registration, type or airport by hand and export a clean summary.',
+    'summary.dualToggleLabel': 'Upload original separately for EXIF data (if the edited photo has no/corrupted EXIF data left)',
+    'summary.originalLabel': 'Original photo (only used to read EXIF data)',
+    'summary.originalDropzoneText': 'Drag the original here or click to choose it',
+    'summary.exifFieldsLabel': 'Detected shot data — editable',
+    'summary.camera': 'Camera',
+    'summary.lens': 'Lens',
+    'summary.focal': 'Focal length',
+    'summary.focalPh': 'e.g. 400mm',
+    'summary.aperture': 'Aperture',
+    'summary.aperturePh': 'e.g. f/5.6',
+    'summary.shutter': 'Shutter speed',
+    'summary.shutterPh': 'e.g. 1/1000s',
+    'summary.isoPh': 'e.g. ISO 400',
+    'summary.date': 'Date',
+    'summary.datePh': 'e.g. 12.06.2026',
+    'summary.extraLabel': 'Additional details (optional)',
+    'summary.reg': 'Registration',
+    'summary.regPh': 'e.g. D-AIBL',
+    'summary.type': 'Type',
+    'summary.typePh': 'e.g. A320-214',
+    'summary.place': 'Airport',
+    'summary.placePh': 'e.g. EDDM / Munich',
+    'summary.watermarkLabel': 'Watermark (optional)',
+    'summary.copyrightPh': '2026 Your Name',
+    'summary.customText': 'Custom text',
+    'summary.customTextPh': 'e.g. Spotting Day',
+    'summary.modeBar': 'Bar below',
+    'summary.modeOverlay': 'Text on photo',
+    'summary.bgTypeLabel': 'Background type',
+    'summary.bgTypeFlat': 'Solid colour',
+    'summary.bgTypeBlur': 'Blurred photo',
+    'summary.bgColor': 'Background',
+    'summary.line1Color': 'Camera data',
+    'summary.line23Color': 'Small text',
+    'summary.accentColor': 'Flight data',
+    'summary.renderBtn': 'Generate summary',
+    'summary.downloadBtn': 'Download as PNG',
+    'split.intro': 'Split a photo into equal <strong>pieces</strong> — e.g. for a multi-part carousel post.',
+    'split.directionLabel': 'Direction',
+    'split.vertical': 'Vertical strips',
+    'split.horizontal': 'Horizontal strips',
+    'split.countLabel': 'Number of pieces',
+    'split.renderBtn': 'Split photo',
+    'split.zipBtn': 'Download all as ZIP',
+    'resize.intro': 'Upload a photo and adjust its <strong>size</strong> — by exact pixels or a percentage preset.',
+    'resize.originalLabel': 'Original',
+    'resize.newSizeLabel': 'New size (px)',
+    'resize.width': 'Width',
+    'resize.height': 'Height',
+    'resize.lockLabel': 'Keep aspect ratio',
+    'resize.formatLabel': 'Format',
+    'resize.qualityLabel': 'Quality',
+    'resize.renderBtn': 'Resize photo',
+    'resize.downloadBtn': 'Download',
+    'batch.intro': 'Upload all photos from a spotting day at once — a summary is generated for each one, auto-filled from EXIF and keyword data, sorted by registration into a ZIP.',
+    'batch.dropzoneText': 'Drag photos here or click to choose them (multiple selection allowed)',
+    'batch.displayLabel': 'Detection',
+    'batch.displayText': 'Registration, type, airport and custom text are detected per photo from EXIF and keyword data — same as the Photo Summary tab.',
+    'batch.renderBtn': 'Process batch',
+    'batch.idleEmpty': 'No photos loaded yet',
+    'batch.zipBtn': 'Download ZIP',
+    'footer.text': 'APRON runs entirely in your browser — your photos never leave your device.',
+    'footer.imprint': 'Imprint',
+    'footer.privacy': 'Privacy'
+  },
+  de: {
+    'header.sub': 'Foto-Werkzeuge für Luftfahrtfotografie',
+    'tab.summary': 'Foto-Übersicht',
+    'tab.split': 'Foto-Splitter',
+    'tab.resize': 'Foto-Resizer',
+    'tab.batch': 'Foto-Stapel',
+    'theme.toggleAria': 'Farbschema wechseln',
+    'theme.toggleTitle': 'Darkmode umschalten',
+    'common.dropzoneText': 'Foto hierher ziehen oder klicken zum Auswählen',
+    'common.emptyPreview': 'Noch kein Foto geladen',
+    'summary.intro': 'Lade ein Foto hoch, um die <strong>Aufnahmedaten</strong> automatisch auszulesen. Ergänze Register, Typ oder Flughafen von Hand und exportiere eine saubere Übersicht.',
+    'summary.dualToggleLabel': 'Original separat für EXIF-Daten hochladen (falls das bearbeitete Bild keine/korrupte EXIF-Daten mehr hat)',
+    'summary.originalLabel': 'Original-Foto (nur zum Auslesen der EXIF-Daten)',
+    'summary.originalDropzoneText': 'Original hierher ziehen oder klicken',
+    'summary.exifFieldsLabel': 'Ausgelesene Aufnahmedaten — bearbeitbar',
+    'summary.camera': 'Kamera',
+    'summary.lens': 'Objektiv',
+    'summary.focal': 'Brennweite',
+    'summary.focalPh': 'z. B. 400mm',
+    'summary.aperture': 'Blende',
+    'summary.aperturePh': 'z. B. f/5.6',
+    'summary.shutter': 'Belichtung',
+    'summary.shutterPh': 'z. B. 1/1000s',
+    'summary.isoPh': 'z. B. ISO 400',
+    'summary.date': 'Datum',
+    'summary.datePh': 'z. B. 12.06.2026',
+    'summary.extraLabel': 'Ergänzende Angaben (optional)',
+    'summary.reg': 'Luftfahrzeugkennzeichen',
+    'summary.regPh': 'z. B. D-AIBL',
+    'summary.type': 'Muster',
+    'summary.typePh': 'z. B. A320-214',
+    'summary.place': 'Ort',
+    'summary.placePh': 'z. B. EDDM / München',
+    'summary.watermarkLabel': 'Wasserzeichen (optional)',
+    'summary.copyrightPh': '2026 Dein Name',
+    'summary.customText': 'Eigener Text',
+    'summary.customTextPh': 'z. B. Spotting Day',
+    'summary.modeBar': 'Balken unten',
+    'summary.modeOverlay': 'Text im Bild',
+    'summary.bgTypeLabel': 'Hintergrundart',
+    'summary.bgTypeFlat': 'Feste Farbe',
+    'summary.bgTypeBlur': 'Unscharfes Foto',
+    'summary.bgColor': 'Hintergrund',
+    'summary.line1Color': 'Kameradaten',
+    'summary.line23Color': 'Kleintext',
+    'summary.accentColor': 'Flugdaten',
+    'summary.renderBtn': 'Übersicht erzeugen',
+    'summary.downloadBtn': 'Als PNG herunterladen',
+    'split.intro': 'Teile ein Foto in gleich große <strong>Ausschnitte</strong> — etwa für eine mehrteilige Carousel-Veröffentlichung.',
+    'split.directionLabel': 'Richtung',
+    'split.vertical': 'Vertikale Streifen',
+    'split.horizontal': 'Horizontale Streifen',
+    'split.countLabel': 'Anzahl der Teile',
+    'split.renderBtn': 'Foto aufteilen',
+    'split.zipBtn': 'Alle als ZIP herunterladen',
+    'resize.intro': 'Lade ein Foto hoch und passe die <strong>Bildgröße</strong> an — per Pixelmaß oder Prozent-Voreinstellung.',
+    'resize.originalLabel': 'Original',
+    'resize.newSizeLabel': 'Neue Größe (px)',
+    'resize.width': 'Breite',
+    'resize.height': 'Höhe',
+    'resize.lockLabel': 'Seitenverhältnis beibehalten',
+    'resize.formatLabel': 'Format',
+    'resize.qualityLabel': 'Qualität',
+    'resize.renderBtn': 'Bild anpassen',
+    'resize.downloadBtn': 'Herunterladen',
+    'batch.intro': 'Lade alle Fotos eines Spotting-Tags auf einmal hoch — für jedes wird eine Übersicht erzeugt, automatisch aus EXIF- und Stichwort-Daten befüllt, sortiert nach Kennzeichen in einem ZIP.',
+    'batch.dropzoneText': 'Fotos hierher ziehen oder klicken (Mehrfachauswahl möglich)',
+    'batch.displayLabel': 'Erkennung',
+    'batch.displayText': 'Register, Muster, Flughafen und Zusatztext werden pro Foto aus EXIF- und Stichwort-Daten erkannt — wie bei der Foto-Übersicht.',
+    'batch.renderBtn': 'Stapel verarbeiten',
+    'batch.idleEmpty': 'Noch keine Fotos geladen',
+    'batch.zipBtn': 'ZIP herunterladen',
+    'footer.text': 'APRON läuft vollständig im Browser — Fotos verlassen nie dein Gerät.',
+    'footer.imprint': 'Impressum',
+    'footer.privacy': 'Datenschutz'
+  }
+};
+
+let currentLang = 'en';
+
+function t(key){
+  return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
+}
+/* Shorthand for small inline dynamic strings: L(english, german) */
+function L(en, de){ return currentLang === 'de' ? de : en; }
+
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{ el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{ el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{ el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+}
+
+function setLanguage(lang){
+  currentLang = lang;
+  document.documentElement.setAttribute('lang', lang);
+  document.getElementById('lang-toggle').textContent = lang === 'en' ? 'DE' : 'EN';
+  applyStaticTranslations();
+  try{ localStorage.setItem('apron-lang', lang); }catch(e){ /* ignore */ }
+}
+
+let initialLang = 'en'; // English by default, regardless of browser locale
+try{
+  const savedLang = localStorage.getItem('apron-lang');
+  if(savedLang === 'en' || savedLang === 'de') initialLang = savedLang;
+}catch(e){ /* ignore */ }
+setLanguage(initialLang);
+
+document.getElementById('lang-toggle').addEventListener('click', ()=>{
+  setLanguage(currentLang === 'en' ? 'de' : 'en');
+});
 
 /* ---------------- theme toggle ---------------- */
 const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
@@ -753,11 +997,10 @@ document.fonts.load('600 20px "IBM Plex Sans"');
 document.fonts.load('400 20px "IBM Plex Mono"');
 
 /* ================= SUMMARY TOOL ================= */
-const DEFAULT_CAMERA = 'Canon EOS 7D';
-const DEFAULT_LENS = 'Canon EF 100-400mm f/4.5-5.6L IS USM';
 let summaryImg = null;
 let summaryFileBase = 'foto';
 let summaryMode = 'bar';
+let summaryBgType = 'flat';
 let dualSourceMode = false;
 
 setupDropzone('dz-summary','file-summary', handleSummaryFile);
@@ -768,18 +1011,40 @@ document.getElementById('dual-source-toggle').addEventListener('change', e=>{
   document.getElementById('dz-summary-exif-wrap').style.display = dualSourceMode ? 'block' : 'none';
 });
 
+function updateSummaryModeVisibility(){
+  const barOnly = document.getElementById('bar-only-options');
+  const pick1 = document.getElementById('pick-line1');
+  const pick23 = document.getElementById('pick-line23');
+  const show = summaryMode === 'bar';
+  barOnly.style.display = show ? 'block' : 'none';
+  pick1.style.display = show ? 'flex' : 'none';
+  pick23.style.display = show ? 'flex' : 'none';
+}
+updateSummaryModeVisibility();
+
 document.querySelectorAll('.mode-choice').forEach(c=>{
   c.addEventListener('click', ()=>{
     document.querySelectorAll('.mode-choice').forEach(x=>x.classList.remove('active'));
     c.classList.add('active');
     summaryMode = c.dataset.mode;
+    updateSummaryModeVisibility();
+    scheduleSummaryAutoRender();
+  });
+});
+
+document.querySelectorAll('.bgtype-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.bgtype-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    summaryBgType = c.dataset.bgtype;
+    scheduleSummaryAutoRender();
   });
 });
 
 function resetExifDefaults(){
   ['f-focal','f-aperture','f-shutter','f-iso','f-date'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-camera').value = DEFAULT_CAMERA;
-  document.getElementById('f-lens').value = DEFAULT_LENS;
+  document.getElementById('f-camera').value = '';
+  document.getElementById('f-lens').value = '';
 }
 
 function combineMakeModel(make, model){
@@ -1014,12 +1279,13 @@ function fillPlace(value){
   if(!cur || cur === 'MUC/EDDM') el.value = value;
 }
 
-async function applyKeywordsFromFile(file, sourceLabel){
+async function applyKeywordsFromFile(file, fromOriginal){
   const keywords = await detectKeywords(file);
   if(!keywords.length) return;
   const readout = document.getElementById('keyword-readout');
   readout.style.display = 'block';
-  readout.textContent = 'Erkannte Stichworte' + (sourceLabel ? ' (' + sourceLabel + ')' : '') + ': ' + keywords.join(', ');
+  const sourceLabel = fromOriginal ? (' (' + L('from original', 'aus Original') + ')') : '';
+  readout.textContent = L('Detected keywords', 'Erkannte Stichworte') + sourceLabel + ': ' + keywords.join(', ');
   const c = classifyKeywords(keywords);
   fillIfEmpty('f-reg', c.reg);
   fillPlace(c.place);
@@ -1052,17 +1318,19 @@ async function handleSummaryFile(file){
     document.getElementById('f-place').value = 'MUC/EDDM';
   }
 
-  renderPreviewImage('preview-summary', summaryImg);
+  await renderAndShowSummary();
 }
 
 async function handleSummaryExifFile(file){
   document.getElementById('fname-summary-exif').textContent = file.name;
   resetExifDefaults();
   await extractExif(file);
-  await applyKeywordsFromFile(file, 'aus Original');
+  await applyKeywordsFromFile(file, true);
+  scheduleSummaryAutoRender();
 }
 
-document.getElementById('btn-render-summary').addEventListener('click', async ()=>{
+async function renderAndShowSummary(){
+  if(!summaryImg) return;
   await document.fonts.ready;
   const canvas = renderSummaryCard();
   const wrap = document.getElementById('preview-summary');
@@ -1072,6 +1340,25 @@ document.getElementById('btn-render-summary').addEventListener('click', async ()
   document.getElementById('summary-dims').textContent = canvas.width + ' × ' + canvas.height + ' px';
   document.getElementById('summary-actions').style.display = 'flex';
   window._summaryCanvas = canvas;
+}
+
+let summaryAutoRenderTimer = null;
+function scheduleSummaryAutoRender(){
+  if(!summaryImg) return;
+  clearTimeout(summaryAutoRenderTimer);
+  summaryAutoRenderTimer = setTimeout(renderAndShowSummary, 150);
+}
+
+document.getElementById('btn-render-summary').addEventListener('click', renderAndShowSummary);
+
+// Live-update: the preview re-renders automatically as any field or
+// colour changes, once a photo is loaded — no need to click "Generate".
+['f-camera','f-lens','f-focal','f-aperture','f-shutter','f-iso','f-date',
+ 'f-reg','f-type','f-place','f-copyright','f-custom'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', scheduleSummaryAutoRender);
+});
+['c-bg','c-accent','c-line1','c-line23'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', scheduleSummaryAutoRender);
 });
 
 function gatherSummaryFields(){
@@ -1104,6 +1391,8 @@ function scaledSize(img, maxSide){
 function renderSummaryCard(){
   const bg = document.getElementById('c-bg').value;
   const accent = document.getElementById('c-accent').value;
+  const line1Color = document.getElementById('c-line1').value;
+  const line23Color = document.getElementById('c-line23').value;
   const tc = textColorsFor(bg);
   const f = gatherSummaryFields();
   const {iw, ih} = scaledSize(summaryImg, 2200);
@@ -1111,7 +1400,7 @@ function renderSummaryCard(){
   if(summaryMode === 'overlay'){
     return renderOverlayCard(summaryImg, iw, ih, bg, accent, tc, f);
   }
-  return renderBarCard(summaryImg, iw, ih, bg, accent, tc, f);
+  return renderBarCard(summaryImg, iw, ih, bg, summaryBgType, accent, line1Color, line23Color, f);
 }
 
 /* Draws img into the dest rect, scaled+cropped like CSS background-size:cover */
@@ -1127,15 +1416,15 @@ function drawCoverImage(ctx, img, dx, dy, dw, dh){
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 
-function renderBarCard(img, iw, ih, bg, accent, tc, f){
-  const padSide = Math.round(iw * 0.02);
+function renderBarCard(img, iw, ih, bg, bgType, accent, line1Color, line23Color, f){
+  const padSide = Math.round(iw * 0.016);
   const padTop = padSide;
   const monoSize = Math.max(15, Math.round(iw*0.019));
   const sansSize = Math.max(12, Math.round(iw*0.014));
 
-  const line4parts = [f.copyright, f.custom].filter(Boolean);
+  const dateCopyParts = [f.date, f.copyright].filter(Boolean);
   const baseBar = Math.max(96, Math.round(iw * 0.085));
-  const barHeight = baseBar + (line4parts.length ? Math.round(sansSize*2.1) : 0);
+  const barHeight = baseBar + (dateCopyParts.length ? Math.round(sansSize*2.1) : 0);
   const padBottom = barHeight;
 
   const W = iw + padSide*2;
@@ -1145,18 +1434,22 @@ function renderBarCard(img, iw, ih, bg, accent, tc, f){
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // Blurred, edge-to-edge version of the photo as the background, with
-  // the chosen background colour applied as a light tint over it — then
-  // the normal sharp photo sits on top, unchanged, in the foreground.
-  const blurPx = Math.max(6, Math.round(iw * 0.025));
-  const bleed = Math.round(iw * 0.04);
-  ctx.save();
-  ctx.filter = 'blur(' + blurPx + 'px)';
-  drawCoverImage(ctx, img, -bleed, -bleed, W + bleed*2, H + bleed*2);
-  ctx.restore();
-
-  ctx.fillStyle = hexWithAlpha(bg, 0.55);
-  ctx.fillRect(0,0,W,H);
+  if(bgType === 'blur'){
+    // Blurred, edge-to-edge version of the photo as the background, with
+    // the chosen background colour applied as a light tint over it — then
+    // the normal sharp photo sits on top, unchanged, in the foreground.
+    const blurPx = Math.max(6, Math.round(iw * 0.025));
+    const bleed = Math.round(iw * 0.04);
+    ctx.save();
+    ctx.filter = 'blur(' + blurPx + 'px)';
+    drawCoverImage(ctx, img, -bleed, -bleed, W + bleed*2, H + bleed*2);
+    ctx.restore();
+    ctx.fillStyle = hexWithAlpha(bg, 0.55);
+    ctx.fillRect(0,0,W,H);
+  } else {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0,0,W,H);
+  }
 
   ctx.drawImage(img, padSide, padTop, iw, ih);
 
@@ -1198,14 +1491,15 @@ function renderBarCard(img, iw, ih, bg, accent, tc, f){
   ctx.stroke();
 
   const baseY = padTop + ih + barHeight*0.14;
-  const vals = [f.focal, f.aperture, f.shutter, f.iso].filter(Boolean);
+  const y1 = baseY + monoSize*1.9;
 
+  // LEFT — camera data: technical readout, then camera/lens, then date + copyright
+  const vals = [f.focal, f.aperture, f.shutter, f.iso].filter(Boolean);
   ctx.textBaseline = 'alphabetic';
   ctx.font = '500 ' + monoSize + 'px "IBM Plex Mono", monospace';
   let x = padSide;
-  const y1 = baseY + monoSize*1.9;
   vals.forEach((v,i)=>{
-    ctx.fillStyle = tc.main;
+    ctx.fillStyle = line1Color;
     ctx.fillText(v, x, y1);
     const w = ctx.measureText(v).width;
     x += w + monoSize*0.9;
@@ -1217,25 +1511,33 @@ function renderBarCard(img, iw, ih, bg, accent, tc, f){
     }
   });
 
-  const line2parts = [f.camera, f.lens, f.date].filter(Boolean);
-  ctx.font = '400 ' + sansSize + 'px "IBM Plex Sans", sans-serif';
-  ctx.fillStyle = tc.muted;
+  const camLensParts = [f.camera, f.lens].filter(Boolean);
   const y2 = y1 + sansSize*2.0;
-  ctx.fillText(line2parts.join('   ·   '), padSide, y2);
-
-  if(line4parts.length){
-    ctx.font = '400 ' + Math.round(sansSize*0.9) + 'px "IBM Plex Sans", sans-serif';
-    ctx.fillStyle = tc.muted;
-    ctx.fillText(line4parts.join('   ·   '), padSide, y2 + sansSize*1.9);
+  if(camLensParts.length){
+    ctx.font = '400 ' + sansSize + 'px "IBM Plex Sans", sans-serif';
+    ctx.fillStyle = line23Color;
+    ctx.fillText(camLensParts.join('   ·   '), padSide, y2);
   }
 
-  const line3parts = [f.reg, f.type, f.place].filter(Boolean);
-  if(line3parts.length){
+  if(dateCopyParts.length){
+    ctx.font = '400 ' + Math.round(sansSize*0.9) + 'px "IBM Plex Sans", sans-serif';
+    ctx.fillStyle = line23Color;
+    ctx.fillText(dateCopyParts.join('   ·   '), padSide, y2 + sansSize*1.9);
+  }
+
+  // RIGHT — flight data: registration/type/airport, then airline below it
+  const flightLine1 = [f.reg, f.type, f.place].filter(Boolean).join('   ·   ');
+  if(flightLine1){
     ctx.font = '500 ' + sansSize + 'px "IBM Plex Sans", sans-serif';
     ctx.fillStyle = accent;
-    const text = line3parts.join('   ·   ');
-    const w = ctx.measureText(text).width;
-    ctx.fillText(text, W - padSide - w, y1);
+    const w = ctx.measureText(flightLine1).width;
+    ctx.fillText(flightLine1, W - padSide - w, y1);
+  }
+  if(f.custom){
+    ctx.font = '400 ' + sansSize + 'px "IBM Plex Sans", sans-serif';
+    ctx.fillStyle = accent;
+    const w = ctx.measureText(f.custom).width;
+    ctx.fillText(f.custom, W - padSide - w, y1 + sansSize*1.9);
   }
 
   return canvas;
@@ -1257,19 +1559,20 @@ function renderOverlayCard(img, iw, ih, bg, accent, tc, f){
   const smallFont = '400 ' + smallSize + 'px "IBM Plex Sans", sans-serif';
 
   const lines = [];
-  const regType = [f.reg, f.type].filter(Boolean).join('   ·   ');
-  if(regType) lines.push({text:regType, font:sansMed, color:accent, size:sansSize, gap:0});
-  if(f.place) lines.push({text:f.place, font:sansReg, color:tc.muted, size:sansSize, gap:4});
-
-  const vals = [f.focal, f.aperture, f.shutter, f.iso].filter(Boolean);
-  vals.forEach((v,i)=> lines.push({text:v, font:monoFont, color:tc.main, size:monoSize, gap:(i===0)?14:3}));
-
+  // 1. registration · type · airport
+  const flightLine = [f.reg, f.type, f.place].filter(Boolean).join('   ·   ');
+  if(flightLine) lines.push({text:flightLine, font:sansMed, color:accent, size:sansSize, gap:0});
+  // 2. airline / custom text
+  if(f.custom) lines.push({text:f.custom, font:sansReg, color:tc.muted, size:sansSize, gap:4});
+  // 3. all shot data combined into a single line
+  const photoData = [f.focal, f.aperture, f.shutter, f.iso].filter(Boolean).join('   ·   ');
+  if(photoData) lines.push({text:photoData, font:monoFont, color:tc.main, size:monoSize, gap:14});
+  // 4. camera + lens, small
   const camLens = [f.camera, f.lens].filter(Boolean).join('   ·   ');
-  if(camLens) lines.push({text:camLens, font:sansReg, color:tc.muted, size:sansSize, gap:14});
-  if(f.date) lines.push({text:f.date, font:sansReg, color:tc.muted, size:sansSize, gap:3});
-
-  const wmParts = [f.copyright, f.custom].filter(Boolean);
-  if(wmParts.length) lines.push({text:wmParts.join('   ·   '), font:smallFont, color:tc.muted, size:smallSize, gap:14});
+  if(camLens) lines.push({text:camLens, font:smallFont, color:tc.muted, size:smallSize, gap:10});
+  // 5. date, copyright side by side
+  const dateCopy = [f.date, f.copyright].filter(Boolean).join('   ·   ');
+  if(dateCopy) lines.push({text:dateCopy, font:smallFont, color:tc.muted, size:smallSize, gap:6});
 
   if(lines.length === 0) return canvas;
   lines[0].gap = 0;
@@ -1291,7 +1594,7 @@ function renderOverlayCard(img, iw, ih, bg, accent, tc, f){
   const panelY = Math.round((ih - panelHeight) / 2);
   const radius = 8;
 
-  ctx.fillStyle = hexWithAlpha(bg, 0.85);
+  ctx.fillStyle = hexWithAlpha(bg, 0.8);
   ctx.beginPath();
   ctx.moveTo(0, panelY);
   ctx.lineTo(panelWidth - radius, panelY);
@@ -1397,8 +1700,8 @@ document.getElementById('btn-render-split').addEventListener('click', ()=>{
 
     const dlBtn = document.createElement('button');
     dlBtn.className = 'dl-btn';
-    dlBtn.title = 'Herunterladen';
-    dlBtn.setAttribute('aria-label','Herunterladen');
+    dlBtn.title = L('Download','Herunterladen');
+    dlBtn.setAttribute('aria-label', L('Download','Herunterladen'));
     dlBtn.innerHTML = downloadIconSVG();
     dlBtn.addEventListener('click', ()=>{
       c.toBlob(blob=>{
@@ -1427,7 +1730,7 @@ document.getElementById('btn-render-split').addEventListener('click', ()=>{
   wrap.innerHTML = '';
   wrap.appendChild(grid);
 
-  document.getElementById('split-dims').textContent = pieceCount + ' Teile · ' + W + ' × ' + H + ' px';
+  document.getElementById('split-dims').textContent = pieceCount + ' ' + L('pieces','Teile') + ' · ' + W + ' × ' + H + ' px';
   document.getElementById('split-actions').style.display = 'flex';
 });
 
@@ -1481,13 +1784,21 @@ document.getElementById('r-height').addEventListener('input', e=>{
   }
 });
 
-document.querySelectorAll('.pct-chip').forEach(chip=>{
+document.querySelectorAll('.pct-chip[data-pct]').forEach(chip=>{
   chip.addEventListener('click', ()=>{
     if(!resizeImg) return;
     const pct = parseInt(chip.dataset.pct) / 100;
     document.getElementById('r-width').value = Math.round(resizeImg.width * pct);
     document.getElementById('r-height').value = Math.round(resizeImg.height * pct);
   });
+});
+
+document.getElementById('pct-jp').addEventListener('click', ()=>{
+  if(!resizeImg) return;
+  const w = 1280;
+  const h = Math.round(w / resizeAspect);
+  document.getElementById('r-width').value = w;
+  document.getElementById('r-height').value = h;
 });
 
 document.querySelectorAll('.format-choice').forEach(c=>{
@@ -1541,8 +1852,9 @@ document.getElementById('btn-download-resize').addEventListener('click', ()=>{
 
 /* ================= BATCH TOOL ================= */
 let batchFiles = [];
-let batchSplitCount = 2;
 let batchZipBlob = null;
+let batchMode = 'bar';
+let batchBgType = 'flat';
 
 function setupMultiDropzone(zoneId, inputId, onFiles){
   const zone = document.getElementById(zoneId);
@@ -1559,19 +1871,40 @@ function setupMultiDropzone(zoneId, inputId, onFiles){
 
 setupMultiDropzone('dz-batch','file-batch', files=>{
   batchFiles = files;
-  document.getElementById('fname-batch').textContent = files.length + ' Datei' + (files.length===1?'':'en') + ' ausgewählt';
+  document.getElementById('fname-batch').textContent = L(
+    files.length + ' file' + (files.length===1?'':'s') + ' selected',
+    files.length + ' Datei' + (files.length===1?'':'en') + ' ausgewählt'
+  );
   document.getElementById('btn-render-batch').disabled = false;
   document.getElementById('batch-actions').style.display = 'none';
   batchZipBlob = null;
 });
 
-document.getElementById('batch-count-minus').addEventListener('click', ()=>{
-  batchSplitCount = Math.max(2, batchSplitCount-1);
-  document.getElementById('batch-count-value').textContent = batchSplitCount;
+function updateBatchModeVisibility(){
+  const barOnly = document.getElementById('batch-bar-only-options');
+  const pick1 = document.getElementById('batch-pick-line1');
+  const pick23 = document.getElementById('batch-pick-line23');
+  const show = batchMode === 'bar';
+  barOnly.style.display = show ? 'block' : 'none';
+  pick1.style.display = show ? 'flex' : 'none';
+  pick23.style.display = show ? 'flex' : 'none';
+}
+updateBatchModeVisibility();
+
+document.querySelectorAll('.batch-mode-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.batch-mode-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    batchMode = c.dataset.mode;
+    updateBatchModeVisibility();
+  });
 });
-document.getElementById('batch-count-plus').addEventListener('click', ()=>{
-  batchSplitCount = Math.min(10, batchSplitCount+1);
-  document.getElementById('batch-count-value').textContent = batchSplitCount;
+document.querySelectorAll('.batch-bgtype-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.batch-bgtype-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    batchBgType = c.dataset.bgtype;
+  });
 });
 
 function canvasToBlobAsync(canvas, type, quality){
@@ -1600,16 +1933,19 @@ document.getElementById('btn-render-batch').addEventListener('click', async ()=>
   document.getElementById('batch-progress-wrap').style.display = 'block';
   document.getElementById('batch-actions').style.display = 'none';
 
-  const bg = document.getElementById('c-bg').value;
-  const accent = document.getElementById('c-accent').value;
-  const mode = summaryMode;
+  const bg = document.getElementById('batch-c-bg').value;
+  const accent = document.getElementById('batch-c-accent').value;
+  const line1Color = document.getElementById('batch-c-line1').value;
+  const line23Color = document.getElementById('batch-c-line23').value;
+  const mode = batchMode;
+  const bgType = batchBgType;
   const copyrightRaw = document.getElementById('batch-copyright').value.trim();
   const globalCopyright = copyrightRaw ? ('© ' + copyrightRaw) : '';
   const tc = textColorsFor(bg);
 
   // Pass 1 — cheap metadata-only scan to know final registration counts
   // up front, so folders can be numbered correctly from the start.
-  setBatchStage('Lese Stichworte…', 0);
+  setBatchStage(L('Reading keywords…','Lese Stichworte…'), 0);
   const classifications = [];
   const regFrequency = {};
   for(let i=0;i<batchFiles.length;i++){
@@ -1617,29 +1953,28 @@ document.getElementById('btn-render-batch').addEventListener('click', async ()=>
     const c = classifyKeywords(keywords);
     classifications.push(c);
     if(c.reg) regFrequency[c.reg] = (regFrequency[c.reg] || 0) + 1;
-    setBatchStage('Lese Stichworte… (' + (i+1) + ' / ' + batchFiles.length + ')', Math.round(((i+1)/batchFiles.length)*15));
+    setBatchStage(L('Reading keywords…','Lese Stichworte…') + ' (' + (i+1) + ' / ' + batchFiles.length + ')', Math.round(((i+1)/batchFiles.length)*20));
   }
 
-  // Pass 2 — render + split one photo at a time (images are processed
-  // and discarded sequentially so memory stays bounded even for large batches).
+  // Pass 2 — render one summary per photo (images processed and
+  // discarded sequentially so memory stays bounded even for large batches).
   const regRunningCount = {};
   const zip = new JSZip();
-  let landscapeCount = 0, portraitCount = 0, splitPiecesTotal = 0, errorCount = 0;
+  let errorCount = 0;
 
   for(let i=0;i<batchFiles.length;i++){
     const file = batchFiles[i];
-    const pct = 15 + Math.round(((i+1)/batchFiles.length)*70);
-    setBatchStage('Verarbeite ' + (i+1) + ' / ' + batchFiles.length + ' — ' + file.name, pct);
+    const pct = 20 + Math.round(((i+1)/batchFiles.length)*70);
+    setBatchStage(L('Processing','Verarbeite') + ' ' + (i+1) + ' / ' + batchFiles.length + ' — ' + file.name, pct);
 
     try{
       const img = await loadImage(file);
-      const isLandscape = img.width >= img.height;
       const exifData = await extractExifData(file);
       const c = classifications[i];
 
       const fields = {
-        camera: exifData.camera || DEFAULT_CAMERA,
-        lens: exifData.lens || DEFAULT_LENS,
+        camera: exifData.camera,
+        lens: exifData.lens,
         focal: exifData.focal,
         aperture: exifData.aperture,
         shutter: exifData.shutter,
@@ -1655,7 +1990,7 @@ document.getElementById('btn-render-batch').addEventListener('click', async ()=>
       const {iw, ih} = scaledSize(img, 2200);
       const summaryCanvas = mode === 'overlay'
         ? renderOverlayCard(img, iw, ih, bg, accent, tc, fields)
-        : renderBarCard(img, iw, ih, bg, accent, tc, fields);
+        : renderBarCard(img, iw, ih, bg, bgType, accent, line1Color, line23Color, fields);
 
       const folderName = nextFolderName(c.reg, regFrequency, regRunningCount);
       const folder = zip.folder(folderName);
@@ -1664,36 +1999,24 @@ document.getElementById('btn-render-batch').addEventListener('click', async ()=>
 
       const summaryBlob = await canvasToBlobAsync(summaryCanvas, 'image/png');
       if(summaryBlob) folder.file(seq + '_' + baseName + '_Summary.png', summaryBlob);
-
-      if(isLandscape){
-        landscapeCount++;
-        const pieces = splitImageToCanvases(img, 'vertical', batchSplitCount);
-        for(let p=0;p<pieces.length;p++){
-          const pieceBlob = await canvasToBlobAsync(pieces[p], 'image/jpeg', 0.95);
-          if(pieceBlob) folder.file(seq + '_' + baseName + '_Split ' + (p+1) + '.jpg', pieceBlob);
-          splitPiecesTotal++;
-        }
-      } else {
-        portraitCount++;
-      }
     }catch(err){
       errorCount++;
     }
   }
 
-  setBatchStage('Erstelle ZIP-Datei…', 90);
+  setBatchStage(L('Creating ZIP file…','Erstelle ZIP-Datei…'), 92);
   const content = await zip.generateAsync({type:'blob', mimeType:'application/zip', compression:'STORE'}, meta=>{
-    setBatchStage('Erstelle ZIP-Datei… (' + Math.round(meta.percent) + '%)', 90 + Math.round(meta.percent*0.1));
+    setBatchStage(L('Creating ZIP file…','Erstelle ZIP-Datei…') + ' (' + Math.round(meta.percent) + '%)', 92 + Math.round(meta.percent*0.08));
   });
 
   batchZipBlob = content;
   document.getElementById('batch-progress-wrap').style.display = 'none';
   document.getElementById('batch-idle').style.display = 'block';
-  document.getElementById('batch-idle').textContent = 'Fertig — ' + batchFiles.length + ' Fotos verarbeitet';
+  document.getElementById('batch-idle').textContent = L('Done','Fertig') + ' — ' + batchFiles.length + ' ' + L('photos processed','Fotos verarbeitet');
   document.getElementById('btn-render-batch').disabled = false;
 
-  let summaryText = portraitCount + ' Hochformat · ' + landscapeCount + ' Querformat (' + splitPiecesTotal + ' Split-Teile)';
-  if(errorCount) summaryText += ' · ' + errorCount + ' Fehler';
+  let summaryText = batchFiles.length + ' ' + L('summaries created','Übersichten erstellt');
+  if(errorCount) summaryText += ' · ' + errorCount + ' ' + L('errors','Fehler');
   document.getElementById('batch-summary-text').textContent = summaryText;
   document.getElementById('batch-actions').style.display = 'flex';
 });
