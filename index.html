@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APRON – Foto-Werkzeuge für Luftfahrtfotografie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --bg:#eef0f2;
+    --panel:#ffffff;
+    --text:#14161a;
+    --muted:#6b7280;
+    --border:#dcdfe3;
+    --accent:#1f3a5f;
+    --accent-soft:#e7edf2;
+    --font-sans:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+    --radius:3px;
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161a;
+    --panel:#1c2025;
+    --text:#e8eaed;
+    --muted:#8b9199;
+    --border:#2b2f35;
+    --accent:#6f9fc9;
+    --accent-soft:#20303f;
+  }
+  html{background:var(--bg);}
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-sans);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    transition:background-color .2s ease, color .2s ease;
+  }
+  a{color:inherit;}
+  button{font-family:inherit;}
+  .app{max-width:1180px;margin:0 auto;padding:0 28px 80px;}
+
+  /* ---------- header ---------- */
+  header.topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:26px 0 22px;
+    border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  .logo{
+    display:flex;align-items:center;gap:10px;
+    font-size:19px;font-weight:600;letter-spacing:0.01em;
+    color:var(--text);
+  }
+  .logo svg{flex-shrink:0;}
+  .logo .sub{
+    font-size:12.5px;font-weight:400;color:var(--muted);
+    margin-left:2px;padding-left:12px;border-left:1px solid var(--border);
+    display:none;
+  }
+  @media(min-width:640px){.logo .sub{display:inline;}}
+
+  nav.tabs{display:flex;gap:2px;flex-wrap:wrap;}
+  .header-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .theme-toggle{
+    width:34px;height:34px;flex-shrink:0;
+    border-radius:50%;border:1px solid var(--border);background:var(--panel);color:var(--muted);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent);}
+  .theme-toggle svg{width:16px;height:16px;}
+  #lang-toggle{
+    width:auto;border-radius:16px;padding:0 12px;
+    font-size:12px;font-weight:500;font-family:var(--font-mono);letter-spacing:0.02em;
+  }
+  .tab{
+    background:none;border:none;cursor:pointer;
+    font-size:14.5px;color:var(--muted);
+    padding:9px 14px;border-radius:var(--radius);
+    position:relative;
+    transition:color .15s ease;
+    white-space:nowrap;
+  }
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--text);font-weight:500;}
+  .tab.active::after{
+    content:"";position:absolute;left:14px;right:14px;bottom:0;height:2px;
+    background:var(--accent);
+  }
+
+  /* ---------- layout ---------- */
+  main{padding-top:40px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .work{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:48px;
+    align-items:start;
+  }
+  @media(max-width:860px){
+    .work{grid-template-columns:1fr;gap:36px;}
+  }
+  @media(max-width:600px){
+    .app{padding:0 16px 60px;}
+    header.topbar{padding:18px 0 16px;gap:10px;}
+    .logo{font-size:17px;}
+    nav.tabs{gap:0;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tab{padding:8px 10px;font-size:13px;flex-shrink:0;}
+    .header-right{gap:8px;}
+    h1.intro{font-size:14px;margin-bottom:24px;}
+    .field-row{grid-template-columns:1fr;gap:10px;}
+    .color-row{gap:14px;}
+    .select-row{flex-wrap:wrap;}
+    .pct-row{flex-wrap:wrap;}
+    .pct-chip{min-width:52px;}
+    main{padding-top:24px;}
+    .preview-wrap{padding:14px;min-height:260px;}
+    footer{flex-direction:column;align-items:flex-start;gap:10px;}
+  }
+
+  h1.intro{
+    font-size:15px;font-weight:400;color:var(--muted);
+    max-width:640px;margin:0 0 34px;
+  }
+  h1.intro strong{color:var(--text);font-weight:500;}
+
+  /* ---------- dropzone ---------- */
+  .dropzone{
+    border:1px dashed var(--border);
+    border-radius:var(--radius);
+    padding:30px 20px;
+    text-align:center;
+    cursor:pointer;
+    background:var(--panel);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .dropzone .icon{margin-bottom:10px;opacity:.55;}
+  .dropzone p{margin:0;font-size:13.5px;color:var(--muted);}
+  .dropzone .fname{
+    margin-top:10px;font-family:var(--font-mono);font-size:12.5px;
+    color:var(--accent);word-break:break-all;
+  }
+  input[type=file]{display:none;}
+
+  /* ---------- fields ---------- */
+  .field-group{margin-top:28px;}
+  .field-group + .field-group{margin-top:24px;padding-top:24px;border-top:1px solid var(--border);}
+  .field-label{
+    font-size:11.5px;color:var(--muted);margin-bottom:10px;
+  }
+  .field-row{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;
+  }
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:11px;color:var(--muted);}
+  .field input[type=text], .field input[type=number]{
+    font-family:var(--font-mono);font-size:13px;color:var(--text);
+    border:1px solid var(--border);border-radius:var(--radius);
+    padding:7px 9px;background:var(--panel);width:100%;
+  }
+  .field input:focus{outline:none;border-color:var(--accent);}
+  .field input::placeholder{color:#b8bcc2;}
+
+  .field .prefixed-input{
+    display:flex;align-items:center;
+    border:1px solid var(--border);border-radius:var(--radius);
+    background:var(--panel);transition:border-color .15s ease;
+  }
+  .field .prefixed-input:focus-within{border-color:var(--accent);}
+  .field .prefixed-input .prefix{
+    padding:7px 0 7px 9px;font-family:var(--font-mono);font-size:13px;color:var(--muted);user-select:none;
+  }
+  .field .prefixed-input input[type=text]{
+    border:none;background:transparent;padding:7px 9px 7px 3px;
+  }
+  .field .prefixed-input input[type=text]:focus{border:none;}
+
+  .color-row{display:flex;gap:18px;margin-top:4px;}
+  .color-pick{display:flex;align-items:center;gap:8px;}
+  .color-pick label{font-size:11px;color:var(--muted);}
+  .color-pick input[type=color]{
+    width:28px;height:28px;border:1px solid var(--border);border-radius:50%;
+    padding:0;cursor:pointer;background:none;
+    -webkit-appearance:none;
+  }
+  .color-pick input[type=color]::-webkit-color-swatch-wrapper{padding:0;border-radius:50%;}
+  .color-pick input[type=color]::-webkit-color-swatch{border:none;border-radius:50%;}
+
+  .select-row{display:flex;gap:8px;margin-top:4px;}
+  .choice{
+    flex:1;border:1px solid var(--border);border-radius:var(--radius);
+    background:var(--panel);padding:9px 10px;font-size:13px;color:var(--muted);
+    cursor:pointer;text-align:center;transition:all .15s ease;
+  }
+  .choice.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:500;}
+
+  .count-stepper{
+    display:flex;align-items:center;gap:0;margin-top:4px;
+    border:1px solid var(--border);border-radius:var(--radius);width:fit-content;background:var(--panel);
+  }
+  .count-stepper button{
+    width:32px;height:32px;border:none;background:none;cursor:pointer;
+    color:var(--accent);font-size:16px;
+  }
+  .count-stepper button:hover{background:var(--accent-soft);}
+  .count-stepper span{
+    width:40px;text-align:center;font-family:var(--font-mono);font-size:13px;
+    border-left:1px solid var(--border);border-right:1px solid var(--border);
+    line-height:32px;
+  }
+
+  .checkbox-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+  .checkbox-row input{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;}
+  .checkbox-row label{font-size:12.5px;color:var(--muted);cursor:pointer;}
+
+  .info-icon{
+    position:relative;display:inline-flex;align-items:center;justify-content:center;
+    width:17px;height:17px;border-radius:50%;border:1px solid var(--border);
+    color:var(--muted);font-size:11px;font-weight:600;font-family:var(--font-sans);
+    cursor:help;flex-shrink:0;outline:none;background:var(--panel);
+  }
+  .info-icon:hover, .info-icon:focus{border-color:var(--accent);color:var(--accent);}
+  .info-icon .info-tooltip{
+    display:none;position:absolute;bottom:25px;left:50%;transform:translateX(-30%);
+    width:250px;max-width:70vw;background:var(--panel);color:var(--text);
+    border:1px solid var(--border);border-radius:var(--radius);
+    padding:10px 12px;font-size:12px;font-weight:400;line-height:1.5;text-align:left;
+    box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:30;
+  }
+  .info-icon:hover .info-tooltip, .info-icon:focus .info-tooltip{display:block;}
+  .pct-row{display:flex;gap:6px;margin-top:10px;}
+  .pct-chip{
+    flex:1;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);
+    padding:6px 4px;font-size:12px;color:var(--muted);cursor:pointer;text-align:center;
+    font-family:var(--font-mono);transition:all .15s ease;
+  }
+  .pct-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .slider-row{margin-top:12px;}
+  .slider-row .slider-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;}
+  .slider-row input[type=range]{width:100%;accent-color:var(--accent);}
+
+  .readout{
+    font-family:var(--font-mono);font-size:12.5px;color:var(--muted);
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:8px 10px;margin-top:4px;
+  }
+
+  .btn-primary{
+    margin-top:26px;width:100%;
+    background:var(--accent);color:#fff;border:none;border-radius:var(--radius);
+    padding:11px 16px;font-size:13.5px;font-weight:500;cursor:pointer;
+    transition:background .15s ease;
+  }
+  .btn-primary:hover{background:#16304e;}
+  .btn-primary:disabled{background:#c3c9d1;cursor:not-allowed;}
+
+  .btn-secondary{
+    background:var(--panel);color:var(--accent);border:1px solid var(--border);border-radius:var(--radius);
+    padding:9px 14px;font-size:13px;cursor:pointer;transition:all .15s ease;
+  }
+  .btn-secondary:hover{border-color:var(--accent);background:var(--accent-soft);}
+
+  /* ---------- preview ---------- */
+  .preview-wrap{
+    border:1px solid var(--border);border-radius:var(--radius);
+    background:var(--panel);
+    min-height:420px;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+    position:relative;
+  }
+  .preview-wrap.empty{color:#b0b5bc;font-size:13.5px;}
+  .preview-wrap canvas, .preview-wrap > img{max-width:100%;max-height:560px;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.05);}
+  .preview-actions{
+    display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:12px;flex-wrap:wrap;
+  }
+  .preview-meta{font-size:12px;color:var(--muted);font-family:var(--font-mono);}
+
+  /* ---------- split grid ---------- */
+  .split-grid{display:grid;gap:16px;width:100%;}
+  .piece-wrap{display:flex;gap:8px;}
+  .split-grid.vertical .piece-wrap{flex-direction:column;align-items:center;}
+  .split-grid.horizontal .piece-wrap{flex-direction:row;align-items:center;}
+  .split-piece{
+    border:1px solid var(--border);overflow:hidden;background:var(--panel);width:100%;
+  }
+  .split-grid.horizontal .split-piece{flex:1;min-width:0;}
+  .split-piece img{display:block;width:100%;height:100%;object-fit:cover;}
+
+  .dl-btn{
+    width:30px;height:30px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--panel);border:1px solid var(--border);border-radius:50%;
+    cursor:pointer;color:var(--accent);transition:all .15s ease;
+  }
+  .dl-btn:hover{background:var(--accent-soft);border-color:var(--accent);}
+  .dl-btn svg{width:14px;height:14px;}
+
+  .progress-bar-outer{height:6px;background:var(--border);border-radius:3px;overflow:hidden;width:100%;}
+  .progress-bar-inner{height:100%;width:0%;background:var(--accent);transition:width .2s ease;}
+  .batch-stage{color:var(--muted);font-size:13.5px;}
+
+  footer{
+    margin-top:70px;padding-top:22px;border-top:1px solid var(--border);
+    font-size:12px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M2 15.5L22 9.5M2 15.5L9 12.2M2 15.5L4.3 19M22 9.5L15 12.8M22 9.5L19.7 6M9 12.2L11 3L13 3.6L12.4 12.9M9 12.2L12.4 12.9M15 12.8L12.4 12.9M15 12.8L14.8 21.2L12.7 20.6L12.4 12.9"
+          stroke="#1f3a5f" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      APRON<span class="sub" data-i18n="header.sub">Photo tools for aviation photography</span>
+    </div>
+    <div class="header-right">
+      <nav class="tabs">
+        <button class="tab active" data-tab="summary" data-i18n="tab.summary">Photo Summary</button>
+        <button class="tab" data-tab="split" data-i18n="tab.split">Photo Splitter</button>
+        <button class="tab" data-tab="resize" data-i18n="tab.resize">Photo Resizer</button>
+        <button class="tab" data-tab="batch" data-i18n="tab.batch">Photo Batch</button>
+      </nav>
+      <button class="theme-toggle" id="lang-toggle" aria-label="Switch language" title="Switch language">DE</button>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Switch colour scheme" title="Toggle dark mode" data-i18n-aria="theme.toggleAria" data-i18n-title="theme.toggleTitle"></button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ================= SUMMARY PANEL ================= -->
+    <section class="panel active" id="panel-summary">
+      <h1 class="intro" data-i18n-html="summary.intro">Upload a photo to automatically read out the <strong>shot data</strong>. Add registration, type or airport by hand and export a clean summary.</h1>
+
+      <div class="work">
+        <div class="controls">
+          <div class="dropzone" id="dz-summary">
+            <div class="icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p data-i18n="common.dropzoneText">Drag a photo here or click to choose one</p>
+            <div class="fname" id="fname-summary"></div>
+          </div>
+          <input type="file" id="file-summary" accept="image/*">
+          <div class="readout" id="keyword-readout" style="display:none;margin-top:12px;"></div>
+
+          <div class="checkbox-row" style="margin-top:14px;">
+            <input type="checkbox" id="dual-source-toggle">
+            <label for="dual-source-toggle" data-i18n="summary.dualToggleLabel">Upload original separately for EXIF data (if the edited photo has no/corrupted EXIF data left)</label>
+          </div>
+
+          <div id="dz-summary-exif-wrap" style="display:none;margin-top:14px;">
+            <div class="field-label" data-i18n="summary.originalLabel">Original photo (only used to read EXIF data)</div>
+            <div class="dropzone" id="dz-summary-exif">
+              <div class="icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <p data-i18n="summary.originalDropzoneText">Drag the original here or click to choose it</p>
+              <div class="fname" id="fname-summary-exif"></div>
+            </div>
+            <input type="file" id="file-summary-exif" accept="image/*">
+          </div>
+
+          <div class="field-group" id="exif-fields" style="display:none;">
+            <div class="field-label" data-i18n="summary.exifFieldsLabel">Detected shot data — editable</div>
+            <div class="field-row">
+              <div class="field"><label data-i18n="summary.camera">Camera</label><input type="text" id="f-camera" placeholder="—"></div>
+              <div class="field"><label data-i18n="summary.lens">Lens</label><input type="text" id="f-lens" placeholder="—"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label data-i18n="summary.focal">Focal length</label><input type="text" id="f-focal" data-i18n-placeholder="summary.focalPh" placeholder="e.g. 400mm"></div>
+              <div class="field"><label data-i18n="summary.aperture">Aperture</label><input type="text" id="f-aperture" data-i18n-placeholder="summary.aperturePh" placeholder="e.g. f/5.6"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label data-i18n="summary.shutter">Shutter speed</label><input type="text" id="f-shutter" data-i18n-placeholder="summary.shutterPh" placeholder="e.g. 1/1000s"></div>
+              <div class="field"><label>ISO</label><input type="text" id="f-iso" data-i18n-placeholder="summary.isoPh" placeholder="e.g. ISO 400"></div>
+            </div>
+            <div class="field-row">
+              <div class="field full"><label data-i18n="summary.date">Date</label><input type="text" id="f-date" data-i18n-placeholder="summary.datePh" placeholder="e.g. 12.06.2026"></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label" data-i18n="summary.extraLabel">Additional details (optional)</div>
+            <div class="field-row">
+              <div class="field"><label data-i18n="summary.reg">Registration</label><input type="text" id="f-reg" data-i18n-placeholder="summary.regPh" placeholder="e.g. D-AIBL"></div>
+              <div class="field"><label data-i18n="summary.type">Type</label><input type="text" id="f-type" data-i18n-placeholder="summary.typePh" placeholder="e.g. A320-214"></div>
+            </div>
+            <div class="field-row">
+              <div class="field full"><label data-i18n="summary.place">Airport</label><input type="text" id="f-place" data-i18n-placeholder="summary.placePh" placeholder="e.g. EDDM / Munich"></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label" data-i18n="summary.watermarkLabel">Watermark (optional)</div>
+            <div class="field-row">
+              <div class="field">
+                <label>Copyright</label>
+                <div class="prefixed-input">
+                  <span class="prefix">©</span>
+                  <input type="text" id="f-copyright" data-i18n-placeholder="summary.copyrightPh" placeholder="2026 Your Name">
+                </div>
+              </div>
+              <div class="field"><label data-i18n="summary.customText">Custom text</label><input type="text" id="f-custom" data-i18n-placeholder="summary.customTextPh" placeholder="e.g. Spotting Day"></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">Layout</div>
+            <div class="select-row">
+              <div class="choice mode-choice active" data-mode="bar" data-i18n="summary.modeBar">Bar below</div>
+              <div class="choice mode-choice" data-mode="overlay" data-i18n="summary.modeOverlay">Text on photo</div>
+            </div>
+
+            <div id="bar-only-options">
+              <div class="field-label" style="margin-top:18px;" data-i18n="summary.bgTypeLabel">Background type</div>
+              <div class="select-row">
+                <div class="choice bgtype-choice active" data-bgtype="flat" data-i18n="summary.bgTypeFlat">Solid colour</div>
+                <div class="choice bgtype-choice" data-bgtype="blur" data-i18n="summary.bgTypeBlur">Blurred photo</div>
+              </div>
+
+              <div class="checkbox-row" style="margin-top:16px;">
+                <input type="checkbox" id="show-link-toggle">
+                <label for="show-link-toggle" data-i18n="summary.showLink">Show website link</label>
+                <span class="info-icon" tabindex="0" aria-label="Info">i
+                  <span class="info-tooltip" data-i18n="summary.showLinkInfo">Showing the link in the bottom right corner lets people who don't know this tool find it right away — handy if your photos get shared around. It's completely optional, not a requirement.</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="color-row" style="margin-top:18px;flex-wrap:wrap;row-gap:14px;">
+              <div class="color-pick"><input type="color" id="c-bg" value="#ffffff"><label data-i18n="summary.bgColor">Background</label></div>
+              <div class="color-pick" id="pick-line1"><input type="color" id="c-line1" value="#000000"><label data-i18n="summary.line1Color">Camera data</label></div>
+              <div class="color-pick" id="pick-line23"><input type="color" id="c-line23" value="#6b7280"><label data-i18n="summary.line23Color">Small text</label></div>
+              <div class="color-pick"><input type="color" id="c-accent" value="#1f3a5f"><label data-i18n="summary.accentColor">Flight data</label></div>
+            </div>
+          </div>
+
+          <button class="btn-primary" id="btn-render-summary" disabled data-i18n="summary.renderBtn">Generate summary</button>
+        </div>
+
+        <div class="result">
+          <div class="preview-wrap empty" id="preview-summary" data-i18n="common.emptyPreview">No photo loaded yet</div>
+          <div class="preview-actions" id="summary-actions" style="display:none;">
+            <span class="preview-meta" id="summary-dims"></span>
+            <button class="btn-secondary" id="btn-download-summary" data-i18n="summary.downloadBtn">Download as PNG</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SPLIT PANEL ================= -->
+    <section class="panel" id="panel-split">
+      <h1 class="intro" data-i18n-html="split.intro">Split a photo into equal <strong>pieces</strong> — e.g. for a multi-part carousel post.</h1>
+
+      <div class="work">
+        <div class="controls">
+          <div class="dropzone" id="dz-split">
+            <div class="icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p data-i18n="common.dropzoneText">Drag a photo here or click to choose one</p>
+            <div class="fname" id="fname-split"></div>
+          </div>
+          <input type="file" id="file-split" accept="image/*">
+
+          <div class="field-group">
+            <div class="field-label" data-i18n="split.directionLabel">Direction</div>
+            <div class="select-row">
+              <div class="choice orient-choice active" data-orient="vertical" data-i18n="split.vertical">Vertical strips</div>
+              <div class="choice orient-choice" data-orient="horizontal" data-i18n="split.horizontal">Horizontal strips</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label" data-i18n="split.countLabel">Number of pieces</div>
+            <div class="count-stepper">
+              <button id="count-minus">−</button>
+              <span id="count-value">2</span>
+              <button id="count-plus">+</button>
+            </div>
+          </div>
+
+          <button class="btn-primary" id="btn-render-split" disabled data-i18n="split.renderBtn">Split photo</button>
+        </div>
+
+        <div class="result">
+          <div class="preview-wrap empty" id="preview-split" data-i18n="common.emptyPreview">No photo loaded yet</div>
+          <div class="preview-actions" id="split-actions" style="display:none;">
+            <span class="preview-meta" id="split-dims"></span>
+            <button class="btn-secondary" id="btn-download-zip" data-i18n="split.zipBtn">Download all as ZIP</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RESIZE PANEL ================= -->
+    <section class="panel" id="panel-resize">
+      <h1 class="intro" data-i18n-html="resize.intro">Upload a photo and adjust its <strong>size</strong> — by exact pixels or a percentage preset.</h1>
+
+      <div class="work">
+        <div class="controls">
+          <div class="dropzone" id="dz-resize">
+            <div class="icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p data-i18n="common.dropzoneText">Drag a photo here or click to choose one</p>
+            <div class="fname" id="fname-resize"></div>
+          </div>
+          <input type="file" id="file-resize" accept="image/*">
+
+          <div class="field-group" id="resize-fields" style="display:none;">
+            <div class="field-label" data-i18n="resize.originalLabel">Original</div>
+            <div class="readout" id="resize-original">—</div>
+
+            <div class="field-label" style="margin-top:18px;" data-i18n="resize.newSizeLabel">New size (px)</div>
+            <div class="field-row">
+              <div class="field"><label data-i18n="resize.width">Width</label><input type="number" id="r-width" min="1"></div>
+              <div class="field"><label data-i18n="resize.height">Height</label><input type="number" id="r-height" min="1"></div>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="r-lock" checked>
+              <label for="r-lock" data-i18n="resize.lockLabel">Keep aspect ratio</label>
+            </div>
+            <div class="pct-row">
+              <div class="pct-chip" data-pct="25">25%</div>
+              <div class="pct-chip" data-pct="50">50%</div>
+              <div class="pct-chip" data-pct="75">75%</div>
+              <div class="pct-chip" data-pct="100">100%</div>
+              <div class="pct-chip" id="pct-jp" title="1280px width, height auto">JP</div>
+            </div>
+          </div>
+
+          <div class="field-group" id="resize-format-group" style="display:none;">
+            <div class="field-label" data-i18n="resize.formatLabel">Format</div>
+            <div class="select-row">
+              <div class="choice format-choice active" data-format="jpeg">JPEG</div>
+              <div class="choice format-choice" data-format="png">PNG</div>
+            </div>
+            <div class="slider-row" id="resize-quality-row">
+              <div class="slider-label"><span data-i18n="resize.qualityLabel">Quality</span><span id="r-quality-value">100</span></div>
+              <input type="range" id="r-quality" min="10" max="100" value="100">
+            </div>
+          </div>
+
+          <button class="btn-primary" id="btn-render-resize" disabled data-i18n="resize.renderBtn">Resize photo</button>
+        </div>
+
+        <div class="result">
+          <div class="preview-wrap empty" id="preview-resize" data-i18n="common.emptyPreview">No photo loaded yet</div>
+          <div class="preview-actions" id="resize-actions" style="display:none;">
+            <span class="preview-meta" id="resize-dims"></span>
+            <button class="btn-secondary" id="btn-download-resize" data-i18n="resize.downloadBtn">Download</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= BATCH PANEL ================= -->
+    <section class="panel" id="panel-batch">
+      <h1 class="intro" data-i18n="batch.intro">Upload all photos from a spotting day at once — a summary is generated for each one, auto-filled from EXIF and keyword data, sorted by registration into a ZIP.</h1>
+
+      <div class="work">
+        <div class="controls">
+          <div class="dropzone" id="dz-batch">
+            <div class="icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5M7 9l5-5 5 5M12 4v13" stroke="#6b7280" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p data-i18n="batch.dropzoneText">Drag photos here or click to choose them (multiple selection allowed)</p>
+            <div class="fname" id="fname-batch"></div>
+          </div>
+          <input type="file" id="file-batch" accept="image/*" multiple>
+
+          <div class="field-group">
+            <div class="field-label">Copyright (optional)</div>
+            <div class="field">
+              <div class="prefixed-input">
+                <span class="prefix">©</span>
+                <input type="text" id="batch-copyright" data-i18n-placeholder="summary.copyrightPh" placeholder="2026 Your Name">
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">Layout</div>
+            <div class="select-row">
+              <div class="choice batch-mode-choice active" data-mode="bar" data-i18n="summary.modeBar">Bar below</div>
+              <div class="choice batch-mode-choice" data-mode="overlay" data-i18n="summary.modeOverlay">Text on photo</div>
+            </div>
+
+            <div id="batch-bar-only-options">
+              <div class="field-label" style="margin-top:18px;" data-i18n="summary.bgTypeLabel">Background type</div>
+              <div class="select-row">
+                <div class="choice batch-bgtype-choice active" data-bgtype="flat" data-i18n="summary.bgTypeFlat">Solid colour</div>
+                <div class="choice batch-bgtype-choice" data-bgtype="blur" data-i18n="summary.bgTypeBlur">Blurred photo</div>
+              </div>
+            </div>
+
+            <div class="color-row" style="margin-top:18px;flex-wrap:wrap;row-gap:14px;">
+              <div class="color-pick"><input type="color" id="batch-c-bg" value="#ffffff"><label data-i18n="summary.bgColor">Background</label></div>
+              <div class="color-pick" id="batch-pick-line1"><input type="color" id="batch-c-line1" value="#000000"><label data-i18n="summary.line1Color">Camera data</label></div>
+              <div class="color-pick" id="batch-pick-line23"><input type="color" id="batch-c-line23" value="#6b7280"><label data-i18n="summary.line23Color">Small text</label></div>
+              <div class="color-pick"><input type="color" id="batch-c-accent" value="#1f3a5f"><label data-i18n="summary.accentColor">Flight data</label></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label" data-i18n="batch.displayLabel">Detection</div>
+            <div class="readout" data-i18n="batch.displayText">Registration, type, airport and custom text are detected per photo from EXIF and keyword data — same as the Photo Summary tab.</div>
+          </div>
+
+          <button class="btn-primary" id="btn-render-batch" disabled data-i18n="batch.renderBtn">Process batch</button>
+        </div>
+
+        <div class="result">
+          <div class="preview-wrap" id="preview-batch">
+            <div id="batch-idle" style="color:#b0b5bc;font-size:13.5px;" data-i18n="batch.idleEmpty">No photos loaded yet</div>
+            <div id="batch-progress-wrap" style="display:none;width:100%;max-width:420px;">
+              <div class="progress-bar-outer"><div class="progress-bar-inner" id="batch-progress-bar"></div></div>
+              <div class="batch-stage" id="batch-progress-label" style="margin-top:10px;"></div>
+            </div>
+          </div>
+          <div class="preview-actions" id="batch-actions" style="display:none;">
+            <span class="preview-meta" id="batch-summary-text"></span>
+            <button class="btn-secondary" id="btn-download-batch" data-i18n="batch.zipBtn">Download ZIP</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span data-i18n="footer.text">APRON runs entirely in your browser — your photos never leave your device.</span>
+    <span>
+      <a href="impressum.html" data-i18n="footer.imprint" style="color:inherit;text-decoration:underline;">Imprint</a>
+      &nbsp;·&nbsp;
+      <a href="datenschutz.html" data-i18n="footer.privacy" style="color:inherit;text-decoration:underline;">Privacy</a>
+      &nbsp;·&nbsp;v1.2
+    </span>
+  </footer>
+
+</div>
+
+<script>
+
+/* ---------------- language / i18n ---------------- */
+const I18N = {
+  en: {
+    'header.sub': 'Photo tools for aviation photography',
+    'tab.summary': 'Photo Summary',
+    'tab.split': 'Photo Splitter',
+    'tab.resize': 'Photo Resizer',
+    'tab.batch': 'Photo Batch',
+    'theme.toggleAria': 'Switch colour scheme',
+    'theme.toggleTitle': 'Toggle dark mode',
+    'common.dropzoneText': 'Drag a photo here or click to choose one',
+    'common.emptyPreview': 'No photo loaded yet',
+    'summary.intro': 'Upload a photo to automatically read out the <strong>shot data</strong>. Add registration, type or airport by hand and export a clean summary.',
+    'summary.dualToggleLabel': 'Upload original separately for EXIF data (if the edited photo has no/corrupted EXIF data left)',
+    'summary.originalLabel': 'Original photo (only used to read EXIF data)',
+    'summary.originalDropzoneText': 'Drag the original here or click to choose it',
+    'summary.exifFieldsLabel': 'Detected shot data — editable',
+    'summary.camera': 'Camera',
+    'summary.lens': 'Lens',
+    'summary.focal': 'Focal length',
+    'summary.focalPh': 'e.g. 400mm',
+    'summary.aperture': 'Aperture',
+    'summary.aperturePh': 'e.g. f/5.6',
+    'summary.shutter': 'Shutter speed',
+    'summary.shutterPh': 'e.g. 1/1000s',
+    'summary.isoPh': 'e.g. ISO 400',
+    'summary.date': 'Date',
+    'summary.datePh': 'e.g. 12.06.2026',
+    'summary.extraLabel': 'Additional details (optional)',
+    'summary.reg': 'Registration',
+    'summary.regPh': 'e.g. D-AIBL',
+    'summary.type': 'Type',
+    'summary.typePh': 'e.g. A320-214',
+    'summary.place': 'Airport',
+    'summary.placePh': 'e.g. EDDM / Munich',
+    'summary.watermarkLabel': 'Watermark (optional)',
+    'summary.copyrightPh': '2026 Your Name',
+    'summary.customText': 'Custom text',
+    'summary.customTextPh': 'e.g. Spotting Day',
+    'summary.modeBar': 'Bar below',
+    'summary.modeOverlay': 'Text on photo',
+    'summary.bgTypeLabel': 'Background type',
+    'summary.bgTypeFlat': 'Solid colour',
+    'summary.bgTypeBlur': 'Blurred photo',
+    'summary.showLink': 'Show website link',
+    'summary.showLinkInfo': 'Showing the link in the bottom right corner lets people who don\'t know this tool find it right away — handy if your photos get shared around. It\'s completely optional, not a requirement.',
+    'summary.bgColor': 'Background',
+    'summary.line1Color': 'Camera data',
+    'summary.line23Color': 'Small text',
+    'summary.accentColor': 'Flight data',
+    'summary.renderBtn': 'Generate summary',
+    'summary.downloadBtn': 'Download as PNG',
+    'split.intro': 'Split a photo into equal <strong>pieces</strong> — e.g. for a multi-part carousel post.',
+    'split.directionLabel': 'Direction',
+    'split.vertical': 'Vertical strips',
+    'split.horizontal': 'Horizontal strips',
+    'split.countLabel': 'Number of pieces',
+    'split.renderBtn': 'Split photo',
+    'split.zipBtn': 'Download all as ZIP',
+    'resize.intro': 'Upload a photo and adjust its <strong>size</strong> — by exact pixels or a percentage preset.',
+    'resize.originalLabel': 'Original',
+    'resize.newSizeLabel': 'New size (px)',
+    'resize.width': 'Width',
+    'resize.height': 'Height',
+    'resize.lockLabel': 'Keep aspect ratio',
+    'resize.formatLabel': 'Format',
+    'resize.qualityLabel': 'Quality',
+    'resize.renderBtn': 'Resize photo',
+    'resize.downloadBtn': 'Download',
+    'batch.intro': 'Upload all photos from a spotting day at once — a summary is generated for each one, auto-filled from EXIF and keyword data, sorted by registration into a ZIP.',
+    'batch.dropzoneText': 'Drag photos here or click to choose them (multiple selection allowed)',
+    'batch.displayLabel': 'Detection',
+    'batch.displayText': 'Registration, type, airport and custom text are detected per photo from EXIF and keyword data — same as the Photo Summary tab.',
+    'batch.renderBtn': 'Process batch',
+    'batch.idleEmpty': 'No photos loaded yet',
+    'batch.zipBtn': 'Download ZIP',
+    'footer.text': 'APRON runs entirely in your browser — your photos never leave your device.',
+    'footer.imprint': 'Imprint',
+    'footer.privacy': 'Privacy'
+  },
+  de: {
+    'header.sub': 'Foto-Werkzeuge für Luftfahrtfotografie',
+    'tab.summary': 'Foto-Übersicht',
+    'tab.split': 'Foto-Splitter',
+    'tab.resize': 'Foto-Resizer',
+    'tab.batch': 'Foto-Stapel',
+    'theme.toggleAria': 'Farbschema wechseln',
+    'theme.toggleTitle': 'Darkmode umschalten',
+    'common.dropzoneText': 'Foto hierher ziehen oder klicken zum Auswählen',
+    'common.emptyPreview': 'Noch kein Foto geladen',
+    'summary.intro': 'Lade ein Foto hoch, um die <strong>Aufnahmedaten</strong> automatisch auszulesen. Ergänze Register, Typ oder Flughafen von Hand und exportiere eine saubere Übersicht.',
+    'summary.dualToggleLabel': 'Original separat für EXIF-Daten hochladen (falls das bearbeitete Bild keine/korrupte EXIF-Daten mehr hat)',
+    'summary.originalLabel': 'Original-Foto (nur zum Auslesen der EXIF-Daten)',
+    'summary.originalDropzoneText': 'Original hierher ziehen oder klicken',
+    'summary.exifFieldsLabel': 'Ausgelesene Aufnahmedaten — bearbeitbar',
+    'summary.camera': 'Kamera',
+    'summary.lens': 'Objektiv',
+    'summary.focal': 'Brennweite',
+    'summary.focalPh': 'z. B. 400mm',
+    'summary.aperture': 'Blende',
+    'summary.aperturePh': 'z. B. f/5.6',
+    'summary.shutter': 'Belichtung',
+    'summary.shutterPh': 'z. B. 1/1000s',
+    'summary.isoPh': 'z. B. ISO 400',
+    'summary.date': 'Datum',
+    'summary.datePh': 'z. B. 12.06.2026',
+    'summary.extraLabel': 'Ergänzende Angaben (optional)',
+    'summary.reg': 'Luftfahrzeugkennzeichen',
+    'summary.regPh': 'z. B. D-AIBL',
+    'summary.type': 'Muster',
+    'summary.typePh': 'z. B. A320-214',
+    'summary.place': 'Ort',
+    'summary.placePh': 'z. B. EDDM / München',
+    'summary.watermarkLabel': 'Wasserzeichen (optional)',
+    'summary.copyrightPh': '2026 Dein Name',
+    'summary.customText': 'Eigener Text',
+    'summary.customTextPh': 'z. B. Spotting Day',
+    'summary.modeBar': 'Balken unten',
+    'summary.modeOverlay': 'Text im Bild',
+    'summary.bgTypeLabel': 'Hintergrundart',
+    'summary.bgTypeFlat': 'Feste Farbe',
+    'summary.bgTypeBlur': 'Unscharfes Foto',
+    'summary.showLink': 'Website-Link anzeigen',
+    'summary.showLinkInfo': 'Der Link unten rechts hilft Leuten, die dieses Tool nicht kennen, es sofort zu finden – praktisch, wenn deine Fotos weitergeteilt werden. Das ist völlig freiwillig und keine Pflicht.',
+    'summary.bgColor': 'Hintergrund',
+    'summary.line1Color': 'Kameradaten',
+    'summary.line23Color': 'Kleintext',
+    'summary.accentColor': 'Flugdaten',
+    'summary.renderBtn': 'Übersicht erzeugen',
+    'summary.downloadBtn': 'Als PNG herunterladen',
+    'split.intro': 'Teile ein Foto in gleich große <strong>Ausschnitte</strong> — etwa für eine mehrteilige Carousel-Veröffentlichung.',
+    'split.directionLabel': 'Richtung',
+    'split.vertical': 'Vertikale Streifen',
+    'split.horizontal': 'Horizontale Streifen',
+    'split.countLabel': 'Anzahl der Teile',
+    'split.renderBtn': 'Foto aufteilen',
+    'split.zipBtn': 'Alle als ZIP herunterladen',
+    'resize.intro': 'Lade ein Foto hoch und passe die <strong>Bildgröße</strong> an — per Pixelmaß oder Prozent-Voreinstellung.',
+    'resize.originalLabel': 'Original',
+    'resize.newSizeLabel': 'Neue Größe (px)',
+    'resize.width': 'Breite',
+    'resize.height': 'Höhe',
+    'resize.lockLabel': 'Seitenverhältnis beibehalten',
+    'resize.formatLabel': 'Format',
+    'resize.qualityLabel': 'Qualität',
+    'resize.renderBtn': 'Bild anpassen',
+    'resize.downloadBtn': 'Herunterladen',
+    'batch.intro': 'Lade alle Fotos eines Spotting-Tags auf einmal hoch — für jedes wird eine Übersicht erzeugt, automatisch aus EXIF- und Stichwort-Daten befüllt, sortiert nach Kennzeichen in einem ZIP.',
+    'batch.dropzoneText': 'Fotos hierher ziehen oder klicken (Mehrfachauswahl möglich)',
+    'batch.displayLabel': 'Erkennung',
+    'batch.displayText': 'Register, Muster, Flughafen und Zusatztext werden pro Foto aus EXIF- und Stichwort-Daten erkannt — wie bei der Foto-Übersicht.',
+    'batch.renderBtn': 'Stapel verarbeiten',
+    'batch.idleEmpty': 'Noch keine Fotos geladen',
+    'batch.zipBtn': 'ZIP herunterladen',
+    'footer.text': 'APRON läuft vollständig im Browser — Fotos verlassen nie dein Gerät.',
+    'footer.imprint': 'Impressum',
+    'footer.privacy': 'Datenschutz'
+  }
+};
+
+let currentLang = 'en';
+
+function t(key){
+  return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
+}
+/* Shorthand for small inline dynamic strings: L(english, german) */
+function L(en, de){ return currentLang === 'de' ? de : en; }
+
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{ el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{ el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{ el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+}
+
+function setLanguage(lang){
+  currentLang = lang;
+  document.documentElement.setAttribute('lang', lang);
+  document.getElementById('lang-toggle').textContent = lang === 'en' ? 'DE' : 'EN';
+  applyStaticTranslations();
+  try{ localStorage.setItem('apron-lang', lang); }catch(e){ /* ignore */ }
+}
+
+let initialLang = 'en'; // English by default, regardless of browser locale
+try{
+  const savedLang = localStorage.getItem('apron-lang');
+  if(savedLang === 'en' || savedLang === 'de') initialLang = savedLang;
+}catch(e){ /* ignore */ }
+setLanguage(initialLang);
+
+document.getElementById('lang-toggle').addEventListener('click', ()=>{
+  setLanguage(currentLang === 'en' ? 'de' : 'en');
+});
+
+/* ---------------- theme toggle ---------------- */
+const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const MOON_ICON = '<svg viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8 8 0 1110 3a6.5 6.5 0 0010 11.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('theme-toggle').innerHTML = theme === 'dark' ? SUN_ICON : MOON_ICON;
+}
+
+let initialTheme = 'light';
+try{
+  const saved = localStorage.getItem('apron-theme');
+  if(saved){
+    initialTheme = saved;
+  } else if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+    initialTheme = 'dark';
+  }
+}catch(e){ /* localStorage unavailable — default to light */ }
+applyTheme(initialTheme);
+
+document.getElementById('theme-toggle').addEventListener('click', ()=>{
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try{ localStorage.setItem('apron-theme', next); }catch(e){ /* ignore */ }
+});
+
+/* ---------------- tabs ---------------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------------- shared helpers ---------------- */
+function setupDropzone(zoneId, inputId, onFile){
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  zone.addEventListener('click', ()=>input.click());
+  input.addEventListener('change', e=>{ if(e.target.files[0]) onFile(e.target.files[0]); });
+  ['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev, e=>{e.preventDefault();zone.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>zone.addEventListener(ev, e=>{e.preventDefault();zone.classList.remove('drag');}));
+  zone.addEventListener('drop', e=>{
+    const f = e.dataTransfer.files[0];
+    if(f) onFile(f);
+  });
+}
+
+function loadImage(file){
+  return new Promise((resolve,reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function fmtShutter(t){
+  if(!t) return '';
+  if(t >= 1) return t + 's';
+  const denom = Math.round(1/t);
+  return '1/' + denom + 's';
+}
+
+function fmtDate(exifDate){
+  if(!exifDate) return '';
+  const parts = exifDate.split(' ')[0].split(':');
+  if(parts.length !== 3) return exifDate;
+  return parts[2] + '.' + parts[1] + '.' + parts[0];
+}
+
+function hexWithAlpha(hex, alpha){
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return 'rgba('+r+','+g+','+b+','+alpha+')';
+}
+
+function luminance(hex){
+  const r=parseInt(hex.slice(1,3),16)/255, g=parseInt(hex.slice(3,5),16)/255, b=parseInt(hex.slice(5,7),16)/255;
+  const lin = c => c<=0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4);
+  return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
+}
+
+function textColorsFor(bgHex){
+  const dark = luminance(bgHex) < 0.45;
+  return dark ? {main:'#f3f4f5', muted:'#b7bcc2'} : {main:'#14161a', muted:'#6b7280'};
+}
+
+function downloadIconSVG(){
+  return '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12M7 10l5 5 5-5M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+/* iOS (incl. iPadOS 13+, which reports itself as "Mac" but has touch) */
+function isIOS(){
+  return /iP(hone|od|ad)/.test(navigator.platform) ||
+    (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+}
+
+/* Saves a Blob to the user's device. iOS Safari/Chrome (WebKit) do not
+   reliably support the <a download> attribute, so on iOS specifically we
+   use the Web Share API instead (opens "Sichern" / "In Fotos sichern").
+   Everywhere else we download directly — no share sheet detour. */
+async function saveFile(blob, filename){
+  if(isIOS() && navigator.canShare){
+    try{
+      const file = new File([blob], filename, {type: blob.type || 'application/octet-stream'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file]});
+        return;
+      }
+    }catch(err){
+      if(err && err.name === 'AbortError') return;
+      // fall through to direct download on any other share error
+    }
+  }
+
+  // On Chrome/Edge desktop, the native "Save As" dialog (File System
+  // Access API) writes the file via a user-directed save rather than an
+  // anonymous blob download — a different code path that Chrome's Safe
+  // Browsing check tends to treat with less suspicion, which can avoid
+  // the "this file could harm your device" warning on freshly-generated
+  // ZIPs. Falls straight back to the classic download otherwise.
+  if(window.showSaveFilePicker){
+    try{
+      const ext = (filename.split('.').pop() || 'dat').toLowerCase();
+      const mime = blob.type || 'application/octet-stream';
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'Datei', accept: { [mime]: ['.' + ext] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return;
+    }catch(err){
+      if(err && err.name === 'AbortError') return; // user cancelled the save dialog
+      // fall through to classic anchor download on any other error
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+function renderPreviewImage(wrapId, img){
+  const wrap = document.getElementById(wrapId);
+  wrap.classList.remove('empty');
+  wrap.innerHTML = '';
+  const preview = document.createElement('img');
+  preview.src = img.src;
+  wrap.appendChild(preview);
+}
+
+document.fonts.load('600 20px "IBM Plex Sans"');
+document.fonts.load('400 20px "IBM Plex Mono"');
+
+/* ================= SUMMARY TOOL ================= */
+let summaryImg = null;
+let summaryFileBase = 'foto';
+let summaryMode = 'bar';
+let summaryBgType = 'flat';
+let dualSourceMode = false;
+
+setupDropzone('dz-summary','file-summary', handleSummaryFile);
+setupDropzone('dz-summary-exif','file-summary-exif', handleSummaryExifFile);
+
+document.getElementById('dual-source-toggle').addEventListener('change', e=>{
+  dualSourceMode = e.target.checked;
+  document.getElementById('dz-summary-exif-wrap').style.display = dualSourceMode ? 'block' : 'none';
+});
+
+function updateSummaryModeVisibility(){
+  const barOnly = document.getElementById('bar-only-options');
+  const pick1 = document.getElementById('pick-line1');
+  const pick23 = document.getElementById('pick-line23');
+  const show = summaryMode === 'bar';
+  barOnly.style.display = show ? 'block' : 'none';
+  pick1.style.display = show ? 'flex' : 'none';
+  pick23.style.display = show ? 'flex' : 'none';
+}
+updateSummaryModeVisibility();
+
+document.querySelectorAll('.mode-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    summaryMode = c.dataset.mode;
+    updateSummaryModeVisibility();
+    scheduleSummaryAutoRender();
+  });
+});
+
+document.querySelectorAll('.bgtype-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.bgtype-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    summaryBgType = c.dataset.bgtype;
+    scheduleSummaryAutoRender();
+  });
+});
+
+function resetExifDefaults(){
+  ['f-focal','f-aperture','f-shutter','f-iso','f-date'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-camera').value = '';
+  document.getElementById('f-lens').value = '';
+}
+
+function combineMakeModel(make, model){
+  make = (make || '').trim();
+  model = (model || '').trim();
+  if(!make) return model;
+  if(!model) return make;
+  // Some cameras (e.g. Canon EOS 7D) already include the make inside the
+  // model string, which would otherwise produce "Canon Canon EOS 7D".
+  if(model.toLowerCase().indexOf(make.toLowerCase()) === 0) return model;
+  return make + ' ' + model;
+}
+
+/* Pure EXIF reader — returns data instead of touching the DOM, so it can
+   be reused by both the single-photo tool and the batch tool. */
+function extractExifData(file){
+  return new Promise(resolve=>{
+    EXIF.getData(file, function(){
+      const make = EXIF.getTag(this, 'Make') || '';
+      const model = EXIF.getTag(this, 'Model') || '';
+      const lens = EXIF.getTag(this, 'LensModel') || EXIF.getTag(this, 'LensMake') || '';
+      const focal = EXIF.getTag(this, 'FocalLength');
+      const fnum = EXIF.getTag(this, 'FNumber');
+      const exposure = EXIF.getTag(this, 'ExposureTime');
+      const iso = EXIF.getTag(this, 'ISOSpeedRatings');
+      const date = EXIF.getTag(this, 'DateTimeOriginal');
+
+      // 0mm / f0.0 / 0s / ISO 0 are not physically valid — a real camera
+      // either omits the tag or reports a real value. A tiny non-zero
+      // remnant (e.g. 0.3) still rounds/formats down to "0mm" / "f/0.0",
+      // so we check the actual displayed value, not just the raw number.
+      const focalRounded = (focal && focal > 0) ? Math.round(focal) : 0;
+      const apertureFixed = (fnum && fnum > 0) ? Number(fnum).toFixed(1) : '0.0';
+
+      resolve({
+        camera: combineMakeModel(make, model),
+        lens: lens || '',
+        focal: focalRounded > 0 ? (focalRounded + 'mm') : '',
+        aperture: parseFloat(apertureFixed) > 0 ? ('f/' + apertureFixed) : '',
+        shutter: (exposure && exposure > 0) ? fmtShutter(exposure) : '',
+        iso: (iso && iso > 0) ? ('ISO ' + iso) : '',
+        date: date ? fmtDate(date) : ''
+      });
+    });
+  });
+}
+
+async function extractExif(file){
+  const d = await extractExifData(file);
+  if(d.camera) document.getElementById('f-camera').value = d.camera;
+  if(d.lens) document.getElementById('f-lens').value = d.lens;
+  if(d.focal) document.getElementById('f-focal').value = d.focal;
+  if(d.aperture) document.getElementById('f-aperture').value = d.aperture;
+  if(d.shutter) document.getElementById('f-shutter').value = d.shutter;
+  if(d.iso) document.getElementById('f-iso').value = d.iso;
+  if(d.date) document.getElementById('f-date').value = d.date;
+}
+
+/* ============== KEYWORD DETECTION (IPTC / XMP) ==============
+   Many photo apps (Lightroom etc.) let you tag photos with keywords —
+   this reads those keywords straight out of the JPEG file (IPTC IIM in
+   the Photoshop APP13 segment, and/or XMP dc:subject in APP1) and turns
+   them into registration / type / airport guesses. No external library
+   needed — this is a small hand-rolled binary JPEG segment reader. */
+
+function readAscii(view, start, len){
+  let s = '';
+  for(let i=0;i<len;i++) s += String.fromCharCode(view.getUint8(start+i));
+  return s;
+}
+
+function decodeXmlEntities(s){
+  return s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'");
+}
+
+function parseIPTCBlock(view, start, end, out){
+  let pos = start;
+  while(pos + 5 <= end){
+    if(view.getUint8(pos) !== 0x1C) break;
+    const record = view.getUint8(pos+1);
+    const dataset = view.getUint8(pos+2);
+    const len = view.getUint16(pos+3);
+    const dataStart = pos + 5;
+    if(dataStart + len > end) break;
+    if(record === 2 && dataset === 25){ // 2:25 = Keywords
+      const bytes = new Uint8Array(view.buffer, dataStart, len);
+      let text = '';
+      try{ text = new TextDecoder('utf-8').decode(bytes); }
+      catch(e){ text = readAscii(view, dataStart, len); }
+      text = text.trim();
+      if(text) out.push(text);
+    }
+    pos = dataStart + len;
+  }
+}
+
+function parsePhotoshopIRB(view, start, end, out){
+  const sig = readAscii(view, start, Math.min(14, end-start));
+  if(sig.indexOf('Photoshop') !== 0) return;
+  let pos = start + 14;
+  while(pos + 8 <= end){
+    const tag = readAscii(view, pos, 4);
+    if(tag !== '8BIM') break;
+    const resourceId = view.getUint16(pos+4);
+    pos += 6;
+    if(pos >= end) break;
+    const nameLen = view.getUint8(pos);
+    let nameTotal = 1 + nameLen;
+    if(nameTotal % 2 !== 0) nameTotal += 1;
+    pos += nameTotal;
+    if(pos + 4 > end) break;
+    const dataSize = view.getUint32(pos); pos += 4;
+    const dataStart = pos;
+    if(dataStart + dataSize > end) break;
+    if(resourceId === 0x0404) parseIPTCBlock(view, dataStart, dataStart+dataSize, out);
+    let dataLen = dataSize;
+    if(dataLen % 2 !== 0) dataLen += 1;
+    pos = dataStart + dataLen;
+  }
+}
+
+function parseXMPSegment(view, start, end, out){
+  const sigLen = 29;
+  if(end - start < sigLen) return;
+  if(readAscii(view, start, sigLen).indexOf('http://ns.adobe.com/xap/1.0/') !== 0) return;
+  let xml = '';
+  try{ xml = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, start+sigLen, end-(start+sigLen))); }
+  catch(e){ return; }
+  const subjectMatch = xml.match(/<dc:subject>([\s\S]*?)<\/dc:subject>/);
+  if(subjectMatch){
+    const items = subjectMatch[1].match(/<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/g) || [];
+    items.forEach(li=>{
+      const m = li.match(/<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/);
+      if(m) out.push(decodeXmlEntities(m[1].trim()));
+    });
+  }
+}
+
+function normalizeKeywords(rawList){
+  const flat = [];
+  rawList.forEach(entry=>{
+    entry.split(/[;,]/).forEach(part=>{ const t = part.trim(); if(t) flat.push(t); });
+  });
+  const seen = new Set(), out = [];
+  flat.forEach(k=>{ const key=k.toLowerCase(); if(!seen.has(key)){ seen.add(key); out.push(k); } });
+  return out;
+}
+
+async function detectKeywords(file){
+  try{
+    const buffer = await file.arrayBuffer();
+    const view = new DataView(buffer);
+    if(view.byteLength < 4 || view.getUint16(0) !== 0xFFD8) return [];
+    const raw = [];
+    let offset = 2;
+    while(offset < view.byteLength - 1){
+      if(view.getUint8(offset) !== 0xFF) break;
+      const marker = view.getUint8(offset+1);
+      offset += 2;
+      if(marker === 0x01 || (marker >= 0xD0 && marker <= 0xD9)) continue;
+      if(marker === 0xDA) break;
+      if(offset + 2 > view.byteLength) break;
+      const segLength = view.getUint16(offset);
+      const segDataStart = offset + 2;
+      const segDataEnd = offset + segLength;
+      if(segDataEnd > view.byteLength || segLength < 2) break;
+      if(marker === 0xED) parsePhotoshopIRB(view, segDataStart, segDataEnd, raw);
+      else if(marker === 0xE1) parseXMPSegment(view, segDataStart, segDataEnd, raw);
+      offset = segDataEnd;
+    }
+    return normalizeKeywords(raw);
+  }catch(err){ return []; }
+}
+
+const ICAO_IATA_MAP = { 'EDDM': 'MUC' };
+function formatPlaceCode(icao){
+  return ICAO_IATA_MAP[icao] ? (icao + ' / ' + ICAO_IATA_MAP[icao]) : icao;
+}
+
+const FLIGHT_PHASE_WORDS = ['takeoff','take-off','taxi','taxiing','landing','approach','climb','descent','parked','pushback','holding','final approach','go-around','rollout'];
+const MANUFACTURER_WORDS = ['airbus','boeing','embraer','bombardier','atr','de havilland','dehavilland','mcdonnell douglas','cessna','learjet','gulfstream','fokker','antonov','ilyushin','tupolev','sukhoi','comac','mitsubishi','dornier','saab','bae','beechcraft','pilatus','dassault','cirrus','piper','diamond','tecnam'];
+
+/* Turns a flat keyword list into reg / airport / type guesses using
+   simple, transparent pattern rules — not a lookup against a flight
+   database, so results are a starting point the user can still edit. */
+function classifyKeywords(keywords){
+  const result = {reg:'', place:'', manufacturer:'', fullType:'', shortType:'', extras:[]};
+  keywords.forEach(k=>{
+    const up = k.toUpperCase();
+    const low = k.toLowerCase();
+    if(!result.place && /^[A-Z]{4}$/.test(up)){ result.place = formatPlaceCode(up); return; }
+    // Registration prefixes are 1–2 chars and can start with a digit
+    // (9H- Malta, 4X- Israel, 5N- Nigeria, 7T- Algeria, 9M- Malaysia, …),
+    // so this must NOT be letters-only or e.g. "9H-QEA" gets missed and
+    // falls through to the type-code guess instead.
+    if(!result.reg && (/^[A-Z0-9]{1,2}-[A-Z0-9]{2,6}$/.test(up) || /^N[0-9]{1,5}[A-Z]{0,2}$/.test(up))){ result.reg = up; return; }
+    if(!result.manufacturer && MANUFACTURER_WORDS.indexOf(low) !== -1){ result.manufacturer = k; return; }
+    if(FLIGHT_PHASE_WORDS.indexOf(low) !== -1){ result.extras.push(k); return; }
+    const alnum = up.replace(/-/g,'');
+    if(/[0-9]/.test(up) && /[A-Z]/.test(up) && alnum.length >= 5){
+      if(!result.fullType){ result.fullType = k; return; }
+      result.extras.push(k); return;
+    }
+    if(/^[A-Z][0-9]{2,3}[A-Z]?$/.test(up)){
+      if(!result.shortType){ result.shortType = up; return; }
+      result.extras.push(k); return;
+    }
+    result.extras.push(k);
+  });
+  return result;
+}
+
+function buildTypeString(c){
+  if(c.manufacturer && c.fullType) return c.manufacturer + ' ' + c.fullType;
+  if(c.fullType) return c.fullType;
+  if(c.manufacturer && c.shortType) return c.manufacturer + ' ' + c.shortType;
+  if(c.shortType) return c.shortType;
+  if(c.manufacturer) return c.manufacturer;
+  return '';
+}
+
+function fillIfEmpty(id, value){
+  if(!value) return;
+  const el = document.getElementById(id);
+  if(!el.value.trim()) el.value = value;
+}
+
+function fillPlace(value){
+  if(!value) return;
+  const el = document.getElementById('f-place');
+  const cur = el.value.trim();
+  if(!cur || cur === 'MUC/EDDM') el.value = value;
+}
+
+async function applyKeywordsFromFile(file, fromOriginal){
+  const keywords = await detectKeywords(file);
+  if(!keywords.length) return;
+  const readout = document.getElementById('keyword-readout');
+  readout.style.display = 'block';
+  const sourceLabel = fromOriginal ? (' (' + L('from original', 'aus Original') + ')') : '';
+  readout.textContent = L('Detected keywords', 'Erkannte Stichworte') + sourceLabel + ': ' + keywords.join(', ');
+  const c = classifyKeywords(keywords);
+  fillIfEmpty('f-reg', c.reg);
+  fillPlace(c.place);
+  fillIfEmpty('f-type', buildTypeString(c));
+  if(c.extras.length) fillIfEmpty('f-custom', c.extras.join(' · '));
+}
+
+async function handleSummaryFile(file){
+  document.getElementById('fname-summary').textContent = file.name;
+  summaryFileBase = file.name.replace(/\.[^/.]+$/, '');
+  summaryImg = await loadImage(file);
+  document.getElementById('exif-fields').style.display = 'block';
+  document.getElementById('btn-render-summary').disabled = false;
+
+  resetExifDefaults();
+  document.getElementById('f-reg').value = '';
+  document.getElementById('f-type').value = '';
+  document.getElementById('f-custom').value = '';
+  document.getElementById('f-place').value = '';
+  document.getElementById('keyword-readout').style.display = 'none';
+
+  // In dual-source mode, EXIF comes only from the separate original —
+  // the edited image's EXIF is often stripped or unreliable anyway.
+  if(!dualSourceMode){
+    await extractExif(file);
+  }
+  await applyKeywordsFromFile(file);
+
+  if(!document.getElementById('f-place').value.trim()){
+    document.getElementById('f-place').value = 'MUC/EDDM';
+  }
+
+  await renderAndShowSummary();
+}
+
+async function handleSummaryExifFile(file){
+  document.getElementById('fname-summary-exif').textContent = file.name;
+  resetExifDefaults();
+  await extractExif(file);
+  await applyKeywordsFromFile(file, true);
+  scheduleSummaryAutoRender();
+}
+
+async function renderAndShowSummary(){
+  if(!summaryImg) return;
+  await document.fonts.ready;
+  const canvas = renderSummaryCard();
+  const wrap = document.getElementById('preview-summary');
+  wrap.classList.remove('empty');
+  wrap.innerHTML = '';
+  wrap.appendChild(canvas);
+  document.getElementById('summary-dims').textContent = canvas.width + ' × ' + canvas.height + ' px';
+  document.getElementById('summary-actions').style.display = 'flex';
+  window._summaryCanvas = canvas;
+}
+
+let summaryAutoRenderTimer = null;
+function scheduleSummaryAutoRender(){
+  if(!summaryImg) return;
+  clearTimeout(summaryAutoRenderTimer);
+  summaryAutoRenderTimer = setTimeout(renderAndShowSummary, 150);
+}
+
+document.getElementById('btn-render-summary').addEventListener('click', renderAndShowSummary);
+
+// Live-update: the preview re-renders automatically as any field or
+// colour changes, once a photo is loaded — no need to click "Generate".
+['f-camera','f-lens','f-focal','f-aperture','f-shutter','f-iso','f-date',
+ 'f-reg','f-type','f-place','f-copyright','f-custom'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', scheduleSummaryAutoRender);
+});
+['c-bg','c-accent','c-line1','c-line23'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', scheduleSummaryAutoRender);
+});
+document.getElementById('show-link-toggle').addEventListener('change', scheduleSummaryAutoRender);
+
+function gatherSummaryFields(){
+  const copyrightRaw = document.getElementById('f-copyright').value.trim();
+  return {
+    camera: document.getElementById('f-camera').value,
+    lens: document.getElementById('f-lens').value,
+    focal: document.getElementById('f-focal').value,
+    aperture: document.getElementById('f-aperture').value,
+    shutter: document.getElementById('f-shutter').value,
+    iso: document.getElementById('f-iso').value,
+    date: document.getElementById('f-date').value,
+    reg: document.getElementById('f-reg').value,
+    type: document.getElementById('f-type').value,
+    place: document.getElementById('f-place').value,
+    copyright: copyrightRaw ? ('© ' + copyrightRaw) : '',
+    custom: document.getElementById('f-custom').value
+  };
+}
+
+function scaledSize(img, maxSide){
+  let iw = img.width, ih = img.height;
+  if(Math.max(iw,ih) > maxSide){
+    const scale = maxSide / Math.max(iw,ih);
+    iw = Math.round(iw*scale); ih = Math.round(ih*scale);
+  }
+  return {iw, ih};
+}
+
+function renderSummaryCard(){
+  const bg = document.getElementById('c-bg').value;
+  const accent = document.getElementById('c-accent').value;
+  const line1Color = document.getElementById('c-line1').value;
+  const line23Color = document.getElementById('c-line23').value;
+  const tc = textColorsFor(bg);
+  const f = gatherSummaryFields();
+  const {iw, ih} = scaledSize(summaryImg, 2200);
+
+  if(summaryMode === 'overlay'){
+    return renderOverlayCard(summaryImg, iw, ih, bg, accent, tc, f);
+  }
+  const showLink = document.getElementById('show-link-toggle').checked;
+  return renderBarCard(summaryImg, iw, ih, bg, summaryBgType, accent, line1Color, line23Color, f, showLink);
+}
+
+/* Draws img into the dest rect, scaled+cropped like CSS background-size:cover */
+function drawCoverImage(ctx, img, dx, dy, dw, dh){
+  const ir = img.width / img.height;
+  const dr = dw / dh;
+  let sx, sy, sw, sh;
+  if(ir > dr){
+    sh = img.height; sw = sh * dr; sx = (img.width - sw) / 2; sy = 0;
+  } else {
+    sw = img.width; sh = sw / dr; sx = 0; sy = (img.height - sh) / 2;
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+}
+
+const WEBSITE_LINK = 'https://anotherjonas.github.io/photo-tools/';
+
+function renderBarCard(img, iw, ih, bg, bgType, accent, line1Color, line23Color, f, showLink){
+  const padSide = Math.round(iw * 0.016);
+  const padTop = padSide;
+  const monoSize = Math.max(15, Math.round(iw*0.019));
+  const sansSize = Math.max(12, Math.round(iw*0.014));
+
+  const dateCopyParts = [f.date, f.copyright].filter(Boolean);
+  const baseBar = Math.max(96, Math.round(iw * 0.085));
+  const barHeight = baseBar
+    + (dateCopyParts.length ? Math.round(sansSize*2.1) : 0)
+    + (showLink ? Math.round(sansSize*1.4) : 0);
+  const padBottom = barHeight;
+
+  const W = iw + padSide*2;
+  const H = ih + padTop + padBottom;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  if(bgType === 'blur'){
+    // Blurred, edge-to-edge version of the photo as the background, with
+    // the chosen background colour applied as a light tint over it — then
+    // the normal sharp photo sits on top, unchanged, in the foreground.
+    const blurPx = Math.max(6, Math.round(iw * 0.025));
+    const bleed = Math.round(iw * 0.04);
+    ctx.save();
+    ctx.filter = 'blur(' + blurPx + 'px)';
+    drawCoverImage(ctx, img, -bleed, -bleed, W + bleed*2, H + bleed*2);
+    ctx.restore();
+    ctx.fillStyle = hexWithAlpha(bg, 0.55);
+    ctx.fillRect(0,0,W,H);
+  } else {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  ctx.drawImage(img, padSide, padTop, iw, ih);
+
+  if(f.copyright){
+    // A plain shadowed text watermark can all but disappear over bright
+    // sky/cloud — a small translucent chip behind it guarantees it stays
+    // readable (if still subtle) over any photo.
+    const wmSize = Math.max(11, Math.round(iw*0.012));
+    const margin = Math.round(iw*0.018);
+    ctx.font = '400 ' + wmSize + 'px "IBM Plex Sans", sans-serif';
+    ctx.textBaseline = 'alphabetic';
+    const wmWidth = ctx.measureText(f.copyright).width;
+    const chipPadX = Math.round(wmSize*0.7);
+    const chipPadY = Math.round(wmSize*0.55);
+    const chipW = wmWidth + chipPadX*2;
+    const chipH = wmSize + chipPadY*1.6;
+    const chipX = padSide + iw - margin - chipW;
+    const chipY = padTop + ih - margin - chipH + Math.round(wmSize*0.3);
+    const chipR = Math.round(wmSize*0.35);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.38)';
+    if(ctx.roundRect){
+      ctx.beginPath();
+      ctx.roundRect(chipX, chipY, chipW, chipH, chipR);
+      ctx.fill();
+    } else {
+      ctx.fillRect(chipX, chipY, chipW, chipH);
+    }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillText(f.copyright, chipX + chipPadX, chipY + chipH - chipPadY - Math.round(wmSize*0.12));
+  }
+
+  ctx.strokeStyle = hexWithAlpha(accent, 0.2);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padSide, padTop+ih+Math.round(barHeight*0.14));
+  ctx.lineTo(W-padSide, padTop+ih+Math.round(barHeight*0.14));
+  ctx.stroke();
+
+  const baseY = padTop + ih + barHeight*0.14;
+  const y1 = baseY + monoSize*1.9;
+
+  // LEFT — camera data: technical readout, then camera/lens, then date + copyright
+  const vals = [f.focal, f.aperture, f.shutter, f.iso].filter(Boolean);
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = '500 ' + monoSize + 'px "IBM Plex Mono", monospace';
+  let x = padSide;
+  vals.forEach((v,i)=>{
+    ctx.fillStyle = line1Color;
+    ctx.fillText(v, x, y1);
+    const w = ctx.measureText(v).width;
+    x += w + monoSize*0.9;
+    if(i < vals.length-1){
+      ctx.fillStyle = accent;
+      ctx.beginPath();
+      ctx.arc(x - monoSize*0.5, y1 - monoSize*0.32, monoSize*0.06, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+
+  const camLensParts = [f.camera, f.lens].filter(Boolean);
+  const y2 = y1 + sansSize*2.0;
+  if(camLensParts.length){
+    ctx.font = '400 ' + sansSize + 'px "IBM Plex Sans", sans-serif';
+    ctx.fillStyle = line23Color;
+    ctx.fillText(camLensParts.join('   ·   '), padSide, y2);
+  }
+
+  if(dateCopyParts.length){
+    ctx.font = '400 ' + Math.round(sansSize*0.9) + 'px "IBM Plex Sans", sans-serif';
+    ctx.fillStyle = line23Color;
+    ctx.fillText(dateCopyParts.join('   ·   '), padSide, y2 + sansSize*1.9);
+  }
+
+  // RIGHT — flight data: registration/type/airport, then airline below it
+  const flightLine1 = [f.reg, f.type, f.place].filter(Boolean).join('   ·   ');
+  if(flightLine1){
+    ctx.font = '500 ' + sansSize + 'px "IBM Plex Sans", sans-serif';
+    ctx.fillStyle = accent;
+    const w = ctx.measureText(flightLine1).width;
+    ctx.fillText(flightLine1, W - padSide - w, y1);
+  }
+  if(f.custom){
+    ctx.font = '400 ' + sansSize + 'px "IBM Plex Sans", sans-serif';
+    ctx.fillStyle = accent;
+    const w = ctx.measureText(f.custom).width;
+    ctx.fillText(f.custom, W - padSide - w, y1 + sansSize*1.9);
+  }
+
+  // Optional website link, bottom right of the bar
+  if(showLink){
+    const linkSize = Math.max(10, Math.round(sansSize*0.78));
+    ctx.font = '400 ' + linkSize + 'px "IBM Plex Mono", monospace';
+    ctx.fillStyle = line23Color;
+    ctx.textBaseline = 'alphabetic';
+    const lw = ctx.measureText(WEBSITE_LINK).width;
+    ctx.fillText(WEBSITE_LINK, W - padSide - lw, H - Math.round(linkSize*1.1));
+  }
+
+  return canvas;
+}
+
+function renderOverlayCard(img, iw, ih, bg, accent, tc, f){
+  const canvas = document.createElement('canvas');
+  canvas.width = iw; canvas.height = ih;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, iw, ih);
+
+  const monoSize = Math.max(14, Math.round(iw*0.0165));
+  const sansSize = Math.max(12, Math.round(iw*0.0135));
+  const smallSize = Math.max(10, Math.round(sansSize*0.85));
+
+  const MONO = '"IBM Plex Mono", monospace';
+  const SANS = '"IBM Plex Sans", sans-serif';
+  const fontOf = l => l.weight + ' ' + l.size + 'px ' + l.family;
+
+  const lines = [];
+  // 1. registration · type · airport
+  const flightLine = [f.reg, f.type, f.place].filter(Boolean).join('   ·   ');
+  if(flightLine) lines.push({text:flightLine, weight:500, family:SANS, color:accent, size:sansSize, gap:0});
+  // 2. airline / custom text
+  if(f.custom) lines.push({text:f.custom, weight:400, family:SANS, color:tc.muted, size:sansSize, gap:4});
+  // 3. all shot data combined into a single line
+  const photoData = [f.focal, f.aperture, f.shutter, f.iso].filter(Boolean).join('  ·  ');
+  if(photoData) lines.push({text:photoData, weight:500, family:MONO, color:tc.main, size:monoSize, gap:12});
+  // 4. camera + lens, small
+  const camLens = [f.camera, f.lens].filter(Boolean).join('   ·   ');
+  if(camLens) lines.push({text:camLens, weight:400, family:SANS, color:tc.muted, size:smallSize, gap:10});
+  // 5. date, copyright side by side
+  const dateCopy = [f.date, f.copyright].filter(Boolean).join('   ·   ');
+  if(dateCopy) lines.push({text:dateCopy, weight:400, family:SANS, color:tc.muted, size:smallSize, gap:6});
+
+  if(lines.length === 0) return canvas;
+  lines[0].gap = 0;
+
+  const padX = Math.round(monoSize*1.1);
+  const padY = Math.round(monoSize*1.0);
+
+  // The panel may use up to ~80% of the photo width; any line that would
+  // still be wider than that is scaled down so nothing sticks out.
+  const maxTextWidth = Math.round(iw*0.8) - padX*2;
+  lines.forEach(l=>{
+    ctx.font = fontOf(l);
+    const w = ctx.measureText(l.text).width;
+    if(w > maxTextWidth) l.size = Math.max(8, Math.floor(l.size * maxTextWidth / w));
+  });
+
+  let maxWidth = 0;
+  lines.forEach(l=>{ ctx.font = fontOf(l); const w = ctx.measureText(l.text).width; if(w > maxWidth) maxWidth = w; });
+
+  const lineAdvance = l => Math.round(l.size*1.6);
+
+  let blockHeight = padY*2;
+  lines.forEach(l=>{ blockHeight += l.gap + lineAdvance(l); });
+  blockHeight -= lineAdvance(lines[lines.length-1]) - lines[lines.length-1].size*1.1;
+
+  const panelWidth = Math.ceil(maxWidth + padX*2);
+  const panelHeight = Math.min(blockHeight, ih - Math.round(ih*0.06));
+  const panelY = Math.round((ih - panelHeight) / 2);
+  const radius = 8;
+
+  ctx.fillStyle = hexWithAlpha(bg, 0.8);
+  ctx.beginPath();
+  ctx.moveTo(0, panelY);
+  ctx.lineTo(panelWidth - radius, panelY);
+  ctx.arcTo(panelWidth, panelY, panelWidth, panelY + radius, radius);
+  ctx.lineTo(panelWidth, panelY + panelHeight - radius);
+  ctx.arcTo(panelWidth, panelY + panelHeight, panelWidth - radius, panelY + panelHeight, radius);
+  ctx.lineTo(0, panelY + panelHeight);
+  ctx.closePath();
+  ctx.fill();
+
+  let cy = panelY + padY;
+  ctx.textBaseline = 'alphabetic';
+  lines.forEach(l=>{
+    cy += l.gap;
+    ctx.font = fontOf(l);
+    ctx.fillStyle = l.color;
+    ctx.fillText(l.text, padX, cy + l.size*0.85);
+    cy += lineAdvance(l);
+  });
+
+  return canvas;
+}
+
+document.getElementById('btn-download-summary').addEventListener('click', ()=>{
+  if(!window._summaryCanvas) return;
+  window._summaryCanvas.toBlob(blob=>{
+    if(blob) saveFile(blob, summaryFileBase + '_Summary.png');
+  }, 'image/png');
+});
+
+/* ================= SPLIT TOOL ================= */
+let splitImg = null;
+let splitFileBase = 'foto';
+let orientation = 'vertical';
+let pieceCount = 2;
+let splitCanvases = [];
+
+setupDropzone('dz-split','file-split', handleSplitFile);
+
+async function handleSplitFile(file){
+  document.getElementById('fname-split').textContent = file.name;
+  splitFileBase = file.name.replace(/\.[^/.]+$/, '');
+  splitImg = await loadImage(file);
+  document.getElementById('btn-render-split').disabled = false;
+  renderPreviewImage('preview-split', splitImg);
+  document.getElementById('split-actions').style.display = 'none';
+}
+
+document.querySelectorAll('.orient-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.orient-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    orientation = c.dataset.orient;
+  });
+});
+
+document.getElementById('count-minus').addEventListener('click', ()=>{
+  pieceCount = Math.max(2, pieceCount-1);
+  document.getElementById('count-value').textContent = pieceCount;
+});
+document.getElementById('count-plus').addEventListener('click', ()=>{
+  pieceCount = Math.min(10, pieceCount+1);
+  document.getElementById('count-value').textContent = pieceCount;
+});
+
+/* Pure split function — reused by both the single Splitter tool and the
+   batch tool. Returns an array of canvases, no DOM side effects. */
+function splitImageToCanvases(img, orient, count){
+  const W = img.width, H = img.height;
+  const canvases = [];
+  for(let i=0;i<count;i++){
+    const c = document.createElement('canvas');
+    let sx,sy,sw,sh;
+    if(orient === 'vertical'){
+      const base = Math.floor(W/count);
+      sw = (i === count-1) ? (W - base*(count-1)) : base;
+      sx = base * i; sy = 0; sh = H;
+    } else {
+      const base = Math.floor(H/count);
+      sh = (i === count-1) ? (H - base*(count-1)) : base;
+      sy = base * i; sx = 0; sw = W;
+    }
+    c.width = sw; c.height = sh;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    canvases.push(c);
+  }
+  return canvases;
+}
+
+document.getElementById('btn-render-split').addEventListener('click', ()=>{
+  splitCanvases = splitImageToCanvases(splitImg, orientation, pieceCount);
+  const img = splitImg;
+  const W = img.width, H = img.height;
+
+  const grid = document.createElement('div');
+  grid.className = 'split-grid ' + orientation;
+  grid.style.gridTemplateColumns = orientation === 'vertical' ? 'repeat(' + pieceCount + ', 1fr)' : '1fr';
+
+  splitCanvases.forEach((c, i)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'piece-wrap';
+
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'dl-btn';
+    dlBtn.title = L('Download','Herunterladen');
+    dlBtn.setAttribute('aria-label', L('Download','Herunterladen'));
+    dlBtn.innerHTML = downloadIconSVG();
+    dlBtn.addEventListener('click', ()=>{
+      c.toBlob(blob=>{
+        if(blob) saveFile(blob, splitFileBase + '_Split ' + (i+1) + '.jpg');
+      }, 'image/jpeg', 0.95);
+    });
+
+    const piece = document.createElement('div');
+    piece.className = 'split-piece';
+    const im = document.createElement('img');
+    im.src = c.toDataURL('image/jpeg', 0.95);
+    piece.appendChild(im);
+
+    if(orientation === 'vertical'){
+      wrap.appendChild(dlBtn);
+      wrap.appendChild(piece);
+    } else {
+      wrap.appendChild(piece);
+      wrap.appendChild(dlBtn);
+    }
+    grid.appendChild(wrap);
+  });
+
+  const wrap = document.getElementById('preview-split');
+  wrap.classList.remove('empty');
+  wrap.innerHTML = '';
+  wrap.appendChild(grid);
+
+  document.getElementById('split-dims').textContent = pieceCount + ' ' + L('pieces','Teile') + ' · ' + W + ' × ' + H + ' px';
+  document.getElementById('split-actions').style.display = 'flex';
+});
+
+document.getElementById('btn-download-zip').addEventListener('click', async ()=>{
+  if(!splitCanvases.length) return;
+  const zip = new JSZip();
+  for(let i=0;i<splitCanvases.length;i++){
+    const dataUrl = splitCanvases[i].toDataURL('image/jpeg', 0.95);
+    const base64 = dataUrl.split(',')[1];
+    zip.file(splitFileBase + '_Split ' + (i+1) + '.jpg', base64, {base64:true});
+  }
+  const content = await zip.generateAsync({type:'blob', mimeType:'application/zip'});
+  saveFile(content, splitFileBase + '_teile.zip');
+});
+
+/* ================= RESIZE TOOL ================= */
+let resizeImg = null;
+let resizeFileBase = 'foto';
+let resizeAspect = 1;
+let resizeFormat = 'jpeg';
+
+setupDropzone('dz-resize','file-resize', handleResizeFile);
+
+async function handleResizeFile(file){
+  document.getElementById('fname-resize').textContent = file.name;
+  resizeFileBase = file.name.replace(/\.[^/.]+$/, '');
+  resizeImg = await loadImage(file);
+  resizeAspect = resizeImg.width / resizeImg.height;
+
+  document.getElementById('resize-original').textContent = resizeImg.width + ' × ' + resizeImg.height + ' px';
+  document.getElementById('r-width').value = resizeImg.width;
+  document.getElementById('r-height').value = resizeImg.height;
+  document.getElementById('resize-fields').style.display = 'block';
+  document.getElementById('resize-format-group').style.display = 'block';
+  document.getElementById('btn-render-resize').disabled = false;
+
+  renderPreviewImage('preview-resize', resizeImg);
+  document.getElementById('resize-actions').style.display = 'none';
+}
+
+document.getElementById('r-width').addEventListener('input', e=>{
+  if(document.getElementById('r-lock').checked){
+    const w = parseInt(e.target.value) || 0;
+    document.getElementById('r-height').value = Math.round(w / resizeAspect);
+  }
+});
+document.getElementById('r-height').addEventListener('input', e=>{
+  if(document.getElementById('r-lock').checked){
+    const h = parseInt(e.target.value) || 0;
+    document.getElementById('r-width').value = Math.round(h * resizeAspect);
+  }
+});
+
+document.querySelectorAll('.pct-chip[data-pct]').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    if(!resizeImg) return;
+    const pct = parseInt(chip.dataset.pct) / 100;
+    document.getElementById('r-width').value = Math.round(resizeImg.width * pct);
+    document.getElementById('r-height').value = Math.round(resizeImg.height * pct);
+  });
+});
+
+document.getElementById('pct-jp').addEventListener('click', ()=>{
+  if(!resizeImg) return;
+  const w = 1280;
+  const h = Math.round(w / resizeAspect);
+  document.getElementById('r-width').value = w;
+  document.getElementById('r-height').value = h;
+});
+
+document.querySelectorAll('.format-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.format-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    resizeFormat = c.dataset.format;
+    document.getElementById('resize-quality-row').style.display = resizeFormat === 'jpeg' ? 'block' : 'none';
+  });
+});
+
+document.getElementById('r-quality').addEventListener('input', e=>{
+  document.getElementById('r-quality-value').textContent = e.target.value;
+});
+
+let resizeResultCanvas = null;
+
+document.getElementById('btn-render-resize').addEventListener('click', ()=>{
+  const w = Math.max(1, parseInt(document.getElementById('r-width').value) || resizeImg.width);
+  const h = Math.max(1, parseInt(document.getElementById('r-height').value) || resizeImg.height);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(resizeImg, 0, 0, w, h);
+  resizeResultCanvas = canvas;
+
+  const wrap = document.getElementById('preview-resize');
+  wrap.classList.remove('empty');
+  wrap.innerHTML = '';
+  wrap.appendChild(canvas);
+
+  const quality = parseInt(document.getElementById('r-quality').value) / 100;
+  const dataUrl = resizeFormat === 'jpeg' ? canvas.toDataURL('image/jpeg', quality) : canvas.toDataURL('image/png');
+  const approxKB = Math.round((dataUrl.length * 0.75) / 1024);
+
+  document.getElementById('resize-dims').textContent = w + ' × ' + h + ' px · ~' + approxKB + ' KB';
+  document.getElementById('resize-actions').style.display = 'flex';
+});
+
+document.getElementById('btn-download-resize').addEventListener('click', ()=>{
+  if(!resizeResultCanvas) return;
+  const quality = parseInt(document.getElementById('r-quality').value) / 100;
+  const ext = resizeFormat === 'jpeg' ? '.jpg' : '.png';
+  const mime = resizeFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+  resizeResultCanvas.toBlob(blob=>{
+    if(blob) saveFile(blob, resizeFileBase + '_resized' + ext);
+  }, mime, resizeFormat === 'jpeg' ? quality : undefined);
+});
+
+/* ================= BATCH TOOL ================= */
+let batchFiles = [];
+let batchZipBlob = null;
+let batchMode = 'bar';
+let batchBgType = 'flat';
+
+function setupMultiDropzone(zoneId, inputId, onFiles){
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  zone.addEventListener('click', ()=>input.click());
+  input.addEventListener('change', e=>{ if(e.target.files.length) onFiles(Array.from(e.target.files)); });
+  ['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev, e=>{e.preventDefault();zone.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>zone.addEventListener(ev, e=>{e.preventDefault();zone.classList.remove('drag');}));
+  zone.addEventListener('drop', e=>{
+    const files = Array.from(e.dataTransfer.files).filter(f=>f.type.indexOf('image/') === 0);
+    if(files.length) onFiles(files);
+  });
+}
+
+setupMultiDropzone('dz-batch','file-batch', files=>{
+  batchFiles = files;
+  document.getElementById('fname-batch').textContent = L(
+    files.length + ' file' + (files.length===1?'':'s') + ' selected',
+    files.length + ' Datei' + (files.length===1?'':'en') + ' ausgewählt'
+  );
+  document.getElementById('btn-render-batch').disabled = false;
+  document.getElementById('batch-actions').style.display = 'none';
+  batchZipBlob = null;
+});
+
+function updateBatchModeVisibility(){
+  const barOnly = document.getElementById('batch-bar-only-options');
+  const pick1 = document.getElementById('batch-pick-line1');
+  const pick23 = document.getElementById('batch-pick-line23');
+  const show = batchMode === 'bar';
+  barOnly.style.display = show ? 'block' : 'none';
+  pick1.style.display = show ? 'flex' : 'none';
+  pick23.style.display = show ? 'flex' : 'none';
+}
+updateBatchModeVisibility();
+
+document.querySelectorAll('.batch-mode-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.batch-mode-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    batchMode = c.dataset.mode;
+    updateBatchModeVisibility();
+  });
+});
+document.querySelectorAll('.batch-bgtype-choice').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.batch-bgtype-choice').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    batchBgType = c.dataset.bgtype;
+  });
+});
+
+function canvasToBlobAsync(canvas, type, quality){
+  return new Promise(resolve=>{ canvas.toBlob(blob=>resolve(blob), type, quality); });
+}
+
+function setBatchStage(label, pct){
+  document.getElementById('batch-progress-label').textContent = label;
+  document.getElementById('batch-progress-bar').style.width = pct + '%';
+}
+
+function nextFolderName(reg, regFrequency, regRunningCount){
+  if(!reg) return 'Unbekannt';
+  const total = regFrequency[reg] || 1;
+  if(total <= 1) return reg;
+  regRunningCount[reg] = (regRunningCount[reg] || 0) + 1;
+  return reg + ' ' + regRunningCount[reg];
+}
+
+document.getElementById('btn-render-batch').addEventListener('click', async ()=>{
+  if(!batchFiles.length) return;
+  await document.fonts.ready;
+
+  document.getElementById('btn-render-batch').disabled = true;
+  document.getElementById('batch-idle').style.display = 'none';
+  document.getElementById('batch-progress-wrap').style.display = 'block';
+  document.getElementById('batch-actions').style.display = 'none';
+
+  const bg = document.getElementById('batch-c-bg').value;
+  const accent = document.getElementById('batch-c-accent').value;
+  const line1Color = document.getElementById('batch-c-line1').value;
+  const line23Color = document.getElementById('batch-c-line23').value;
+  const mode = batchMode;
+  const bgType = batchBgType;
+  const copyrightRaw = document.getElementById('batch-copyright').value.trim();
+  const globalCopyright = copyrightRaw ? ('© ' + copyrightRaw) : '';
+  const tc = textColorsFor(bg);
+
+  // Pass 1 — cheap metadata-only scan to know final registration counts
+  // up front, so folders can be numbered correctly from the start.
+  setBatchStage(L('Reading keywords…','Lese Stichworte…'), 0);
+  const classifications = [];
+  const regFrequency = {};
+  for(let i=0;i<batchFiles.length;i++){
+    const keywords = await detectKeywords(batchFiles[i]);
+    const c = classifyKeywords(keywords);
+    classifications.push(c);
+    if(c.reg) regFrequency[c.reg] = (regFrequency[c.reg] || 0) + 1;
+    setBatchStage(L('Reading keywords…','Lese Stichworte…') + ' (' + (i+1) + ' / ' + batchFiles.length + ')', Math.round(((i+1)/batchFiles.length)*20));
+  }
+
+  // Pass 2 — render one summary per photo (images processed and
+  // discarded sequentially so memory stays bounded even for large batches).
+  const regRunningCount = {};
+  const zip = new JSZip();
+  let errorCount = 0;
+
+  for(let i=0;i<batchFiles.length;i++){
+    const file = batchFiles[i];
+    const pct = 20 + Math.round(((i+1)/batchFiles.length)*70);
+    setBatchStage(L('Processing','Verarbeite') + ' ' + (i+1) + ' / ' + batchFiles.length + ' — ' + file.name, pct);
+
+    try{
+      const img = await loadImage(file);
+      const exifData = await extractExifData(file);
+      const c = classifications[i];
+
+      const fields = {
+        camera: exifData.camera,
+        lens: exifData.lens,
+        focal: exifData.focal,
+        aperture: exifData.aperture,
+        shutter: exifData.shutter,
+        iso: exifData.iso,
+        date: exifData.date,
+        reg: c.reg,
+        type: buildTypeString(c),
+        place: c.place || 'MUC/EDDM',
+        copyright: globalCopyright,
+        custom: c.extras.join(' · ')
+      };
+
+      const {iw, ih} = scaledSize(img, 2200);
+      const summaryCanvas = mode === 'overlay'
+        ? renderOverlayCard(img, iw, ih, bg, accent, tc, fields)
+        : renderBarCard(img, iw, ih, bg, bgType, accent, line1Color, line23Color, fields);
+
+      const folderName = nextFolderName(c.reg, regFrequency, regRunningCount);
+      const folder = zip.folder(folderName);
+      const seq = String(i+1);
+      const baseName = file.name.replace(/\.[^/.]+$/, '');
+
+      const summaryBlob = await canvasToBlobAsync(summaryCanvas, 'image/png');
+      if(summaryBlob) folder.file(seq + '_' + baseName + '_Summary.png', summaryBlob);
+    }catch(err){
+      errorCount++;
+    }
+  }
+
+  setBatchStage(L('Creating ZIP file…','Erstelle ZIP-Datei…'), 92);
+  const content = await zip.generateAsync({type:'blob', mimeType:'application/zip', compression:'STORE'}, meta=>{
+    setBatchStage(L('Creating ZIP file…','Erstelle ZIP-Datei…') + ' (' + Math.round(meta.percent) + '%)', 92 + Math.round(meta.percent*0.08));
+  });
+
+  batchZipBlob = content;
+  document.getElementById('batch-progress-wrap').style.display = 'none';
+  document.getElementById('batch-idle').style.display = 'block';
+  document.getElementById('batch-idle').textContent = L('Done','Fertig') + ' — ' + batchFiles.length + ' ' + L('photos processed','Fotos verarbeitet');
+  document.getElementById('btn-render-batch').disabled = false;
+
+  let summaryText = batchFiles.length + ' ' + L('summaries created','Übersichten erstellt');
+  if(errorCount) summaryText += ' · ' + errorCount + ' ' + L('errors','Fehler');
+  document.getElementById('batch-summary-text').textContent = summaryText;
+  document.getElementById('batch-actions').style.display = 'flex';
+});
+
+document.getElementById('btn-download-batch').addEventListener('click', ()=>{
+  if(!batchZipBlob) return;
+  saveFile(batchZipBlob, 'apron_stapel.zip');
+});
+</script>
+
+</body>
+</html>
